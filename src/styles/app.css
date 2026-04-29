@@ -76,8 +76,28 @@
 
 /* ── Options panel ─────────────────────────────────────── */
 .options-panel {
-  padding: 0 var(--s-4) var(--s-5);
+  padding: var(--s-4) var(--s-4) var(--s-5);
   border-bottom: var(--bw) solid var(--hairline);
+}
+
+.format-warn {
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-1);
+  border: var(--bw) solid var(--status-warn);
+  color: var(--status-warn);
+  font-size: var(--t-xs);
+  line-height: var(--lh-base);
+}
+.format-note {
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-1);
+  border: var(--bw) solid var(--hairline);
+  background: var(--bg-sunken);
+  color: var(--ink-soft);
+  font-size: var(--t-xs);
+  line-height: var(--lh-base);
 }
 .options-row {
   display: flex; align-items: flex-end; justify-content: space-between;

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { formatSize } from '../utils/format'
+import { formatSize, fileTypeLabel } from '../utils/format'
 
 const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
   const { id, file, previewUrl, w, h } = entry
@@ -11,7 +11,7 @@ const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
       <div className="preview-card__info">
         <span className="preview-card__name">{file.name}</span>
         <span className="preview-card__meta">
-          JPEG · {formatSize(file.size)}{w ? ` · ${w}×${h}` : ''}
+          {fileTypeLabel(file)} · {formatSize(file.size)}{w ? ` · ${w}×${h}` : ''}
         </span>
       </div>
       <button

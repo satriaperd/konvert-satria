@@ -7,21 +7,15 @@ import OptionsPanel from './components/OptionsPanel'
 import FilePreviewCard from './components/FilePreviewCard'
 import ProcessingScreen from './components/ProcessingScreen'
 import ResultScreen from './components/ResultScreen'
-import { convertFile, warmup } from './encoders/webp'
-import { isJpeg, uid, formatSize } from './utils/format'
+import { convertFile, warmup, FORMAT_STEPS, FORMAT_META } from './encoders/index.js'
+import { isSupported, uid, formatSize } from './utils/format'
 
-const STEPS = [
-  { id: 'encoder', label: 'Initializing WebP encoder' },
-  { id: 'decode',  label: 'Loading & decoding image'  },
-  { id: 'encode',  label: 'Encoding to WebP'          },
-]
-
-function makeStatuses(files) {
+function makeStatuses(files, format) {
   return files.map(f => ({
     id:       f.id,
     fileName: f.file.name,
     status:   'pending',
-    steps:    STEPS.map(s => ({ ...s, status: 'pending' })),
+    steps:    FORMAT_STEPS[format].map(s => ({ ...s, status: 'pending' })),
     error:    null,
   }))
 }
@@ -30,14 +24,19 @@ export default function App() {
   const [files,         setFiles]         = useState([])
   const [mode,          setMode]          = useState('lossy')
   const [quality,       setQuality]       = useState(75)
-  const [theme,         setTheme]         = useState(() => localStorage.getItem('konvert-theme') || 'light')
+  const [outputFormat,  setOutputFormat]  = useState('webp')
+  const [theme,         setTheme]         = useState(() => {
+    const saved = localStorage.getItem('konvert-theme')
+    if (saved) return saved
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
   const [screen,        setScreen]        = useState('upload')
   const [fileStatuses,  setFileStatuses]  = useState([])
   const [results,       setResults]       = useState([])
 
   // ── Theme ────────────────────────────────────────────────
   useEffect(() => {
-    document.body.setAttribute('data-theme', theme)
+    document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('konvert-theme', theme)
   }, [theme])
 
@@ -45,7 +44,7 @@ export default function App() {
 
   // ── File management ──────────────────────────────────────
   const addFiles = useCallback((incoming) => {
-    const filtered = incoming.filter(isJpeg)
+    const filtered = incoming.filter(isSupported)
     if (!filtered.length) return
 
     const entries = filtered.map(file => ({
@@ -55,9 +54,8 @@ export default function App() {
     }))
 
     setFiles(prev => [...prev, ...entries])
-    warmup() // pre-init WASM while user reviews files
+    warmup(outputFormat) // pre-init WASM while user reviews files
 
-    // Load dimensions asynchronously
     entries.forEach(entry => {
       createImageBitmap(entry.file)
         .then(bm => {
@@ -68,7 +66,7 @@ export default function App() {
         })
         .catch(() => {})
     })
-  }, [])
+  }, [outputFormat])
 
   const removeFile = useCallback((id) => {
     setFiles(prev => {
@@ -82,11 +80,14 @@ export default function App() {
   const convertAll = useCallback(async () => {
     if (!files.length) return
 
-    setFileStatuses(makeStatuses(files))
+    setFileStatuses(makeStatuses(files, outputFormat))
     setResults([])
     setScreen('processing')
 
+    await warmup(outputFormat)
+
     const newResults = []
+    const meta = FORMAT_META[outputFormat]
 
     for (const entry of files) {
       setFileStatuses(prev =>
@@ -103,9 +104,9 @@ export default function App() {
 
       try {
         const { buffer, w, h, resized } = await convertFile(
-          entry.file, quality, mode === 'lossless', updateStep
+          entry.file, quality, mode === 'lossless', outputFormat, updateStep
         )
-        const blob    = new Blob([buffer], { type: 'image/webp' })
+        const blob    = new Blob([buffer], { type: meta.mime })
         const blobUrl = URL.createObjectURL(blob)
         newResults.push({
           id: entry.id, file: entry.file,
@@ -114,6 +115,7 @@ export default function App() {
           originalSize: entry.file.size,
           outputSize:   blob.size,
           w, h, resized,
+          format: outputFormat,
         })
         setFileStatuses(prev =>
           prev.map(s => s.id === entry.id ? { ...s, status: 'done' } : s)
@@ -132,26 +134,30 @@ export default function App() {
     if (newResults.length > 0) {
       setTimeout(() => setScreen('result'), 600)
     }
-  }, [files, quality, mode])
+  }, [files, quality, mode, outputFormat])
 
   // ── Download ─────────────────────────────────────────────
   const downloadOne = useCallback((result) => {
+    const ext = FORMAT_META[result.format]?.ext || '.webp'
     const a = document.createElement('a')
     a.href     = result.blobUrl
-    a.download = result.file.name.replace(/\.(jpg|jpeg)$/i, '.webp')
+    a.download = result.file.name.replace(/\.(jpg|jpeg|png|svg)$/i, ext)
     a.click()
   }, [])
 
   const downloadAll = useCallback(async () => {
     if (!results.length) return
     const zip = new JSZip()
-    results.forEach(r => zip.file(r.file.name.replace(/\.(jpg|jpeg)$/i, '.webp'), r.blob))
+    results.forEach(r => {
+      const ext = FORMAT_META[r.format]?.ext || '.webp'
+      zip.file(r.file.name.replace(/\.(jpg|jpeg|png|svg)$/i, ext), r.blob)
+    })
     const zipBlob = await zip.generateAsync({
       type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 },
     })
     const a = document.createElement('a')
     a.href     = URL.createObjectURL(zipBlob)
-    a.download = 'konvert_webp.zip'
+    a.download = 'konvert_images.zip'
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 10000)
   }, [results])
@@ -178,8 +184,8 @@ export default function App() {
           {files.length > 0 && (
             <>
               <OptionsPanel
-                mode={mode} quality={quality}
-                onMode={setMode} onQuality={setQuality}
+                mode={mode} quality={quality} outputFormat={outputFormat}
+                onMode={setMode} onQuality={setQuality} onFormat={setOutputFormat}
               />
 
               <section className="files-section">

@@ -1,9 +1,3 @@
-const STEP_LABEL = {
-  encoder: 'Initializing WebP encoder',
-  decode:  'Loading & decoding image',
-  encode:  'Encoding to WebP',
-}
-
 function StepIcon({ status }) {
   if (status === 'active') return <span className="step-spinner" aria-hidden="true" />
   if (status === 'done')   return '✓'
@@ -72,7 +66,7 @@ export default function ProcessingScreen({ fileStatuses, onViewResults }) {
                         <span className={`step-icon step-icon--${step.status}`}>
                           <StepIcon status={step.status} />
                         </span>
-                        <span className="step-label">{STEP_LABEL[step.id]}</span>
+                        <span className="step-label">{step.label}</span>
                       </div>
                     ))}
                     {fs.error && (

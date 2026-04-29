@@ -27,8 +27,18 @@ export function enlargedTip(convMode) {
   return 'WebP quality terlalu tinggi untuk sumber ini — coba turunkan di bawah 75%.'
 }
 
-export function isJpeg(file) {
-  return file.type === 'image/jpeg' || /\.(jpg|jpeg)$/i.test(file.name)
+export function isSupported(file) {
+  const TYPES = ['image/jpeg', 'image/png', 'image/svg+xml']
+  if (TYPES.includes(file.type)) return true
+  return /\.(jpg|jpeg|png|svg)$/i.test(file.name)
+}
+
+export function fileTypeLabel(file) {
+  if (file.type === 'image/png')     return 'PNG'
+  if (file.type === 'image/svg+xml') return 'SVG'
+  if (file.type === 'image/jpeg')    return 'JPEG'
+  const ext = file.name.split('.').pop()?.toUpperCase()
+  return ext || 'IMAGE'
 }
 
 let _uid = 0

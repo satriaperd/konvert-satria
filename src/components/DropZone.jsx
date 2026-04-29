@@ -42,7 +42,7 @@ export default function DropZone({ onFiles }) {
         className={`drop-zone${isOver ? ' is-over' : ''}`}
         tabIndex={0}
         role="button"
-        aria-label="Drop JPG files here, or press Enter to browse"
+        aria-label="Drop image files here, or press Enter to browse"
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -53,7 +53,7 @@ export default function DropZone({ onFiles }) {
           ref={inputRef}
           type="file"
           multiple
-          accept=".jpg,.jpeg,image/jpeg"
+          accept=".jpg,.jpeg,.png,.svg,image/jpeg,image/png,image/svg+xml"
           hidden
           onChange={handleChange}
         />
@@ -62,7 +62,7 @@ export default function DropZone({ onFiles }) {
                 strokeLinecap="round" strokeLinejoin="round" />
           <path d="M8 38h32" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
-        <p className="drop-zone__title">Drop your JPG files here</p>
+        <p className="drop-zone__title">Drop your images here</p>
         <p className="drop-zone__sub">
           or{' '}
           <button
@@ -74,8 +74,9 @@ export default function DropZone({ onFiles }) {
           </button>
         </p>
         <div className="drop-zone__chips">
-          <span className="badge">JPEG / JPG</span>
-          <span className="badge">Batch supported</span>
+          <span className="badge">JPEG</span>
+          <span className="badge">PNG</span>
+          <span className="badge">SVG</span>
           <span className="badge badge--ok">100% client-side</span>
         </div>
       </div>

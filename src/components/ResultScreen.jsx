@@ -1,4 +1,5 @@
 import { formatSize, pctSaved, savingsClass, savingsLabel } from '../utils/format'
+import { FORMAT_META } from '../encoders/index.js'
 
 export default function ResultScreen({ results, onDownloadOne, onDownloadAll, onReset }) {
   return (
@@ -23,6 +24,7 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
 
         <div className="files-list">
           {results.map(r => {
+            const meta   = FORMAT_META[r.format] || FORMAT_META.webp
             const pct    = pctSaved(r.originalSize, r.outputSize)
             const bigger = pct <= 0
             return (
@@ -31,10 +33,10 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
                 <div className="file-card__header">
                   <div className="file-card__info">
                     <span className="file-card__name">
-                      {r.file.name.replace(/\.(jpg|jpeg)$/i, '.webp')}
+                      {r.file.name.replace(/\.(jpg|jpeg|png|svg)$/i, meta.ext)}
                     </span>
                     <span className="file-card__meta">
-                      WebP · {r.w}×{r.h}{r.resized ? ' (resized)' : ''}
+                      {meta.label} · {r.w}×{r.h}{r.resized ? ' (resized)' : ''}
                     </span>
                   </div>
                 </div>
@@ -66,7 +68,7 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
                   </div>
                   <div className="card-actions">
                     <button className="btn btn--primary btn--sm" onClick={() => onDownloadOne(r)}>
-                      ↓ WebP
+                      ↓ {meta.label}
                     </button>
                   </div>
                 </div>

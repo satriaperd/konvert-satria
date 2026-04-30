@@ -377,9 +377,16 @@
   padding: var(--s-4) var(--s-4) var(--s-6);
   border-top: var(--bw) solid var(--hairline);
 }
+.app-footer__meta  { display: flex; align-items: center; gap: var(--s-3); }
 .app-footer__copy {
   font-family: var(--font-mono); font-size: 11px;
   color: var(--ink-faint); letter-spacing: var(--tr-wide);
+}
+.app-footer__version {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--ink-faint); letter-spacing: var(--tr-wider);
+  padding: 2px 6px; border-radius: var(--r-1);
+  border: var(--bw) solid var(--hairline-soft);
 }
 .app-footer__actions { display: flex; align-items: center; gap: var(--s-2); }
 .feedback-btn {
@@ -398,11 +405,76 @@
   border: var(--bw) solid var(--blitz-primary);
   background: transparent; color: var(--blitz-primary-deep);
   cursor: pointer; transition: all var(--dur-1) var(--ease);
-  text-decoration: none; display: inline-flex; align-items: center;
 }
 .donate-btn:hover { background: var(--blitz-primary); color: var(--blitz-on-primary); }
 [data-theme="dark"] .donate-btn { color: var(--blitz-primary); }
 [data-theme="dark"] .donate-btn:hover { color: var(--blitz-on-primary); }
+
+/* ── Donate modal ──────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--s-4);
+  animation: fadeIn var(--dur-2) var(--ease);
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal-card {
+  background: var(--bg-elev); border: var(--bw) solid var(--hairline);
+  border-radius: var(--r-2); padding: var(--s-5);
+  width: 100%; max-width: 380px;
+  animation: slideUp var(--dur-2) var(--ease);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--s-2);
+}
+.modal-title {
+  font-family: var(--font-mono); font-size: var(--t-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: var(--tr-wider); color: var(--ink);
+}
+.modal-close {
+  width: 24px; height: 24px; border-radius: var(--r-1);
+  border: var(--bw) solid transparent; background: transparent;
+  color: var(--ink-faint); font-size: 13px;
+  display: grid; place-items: center; cursor: pointer;
+  transition: all var(--dur-1) var(--ease);
+}
+.modal-close:hover { background: var(--bg-tint); color: var(--ink); border-color: var(--hairline); }
+.modal-desc {
+  font-size: var(--t-sm); color: var(--ink-soft);
+  margin: 0 0 var(--s-4); line-height: var(--lh-base);
+}
+.modal-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+.donate-option {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-1);
+  border: var(--bw) solid var(--hairline); background: var(--bg-sunken);
+  text-decoration: none; cursor: pointer;
+  transition: all var(--dur-1) var(--ease);
+}
+.donate-option:hover {
+  border-color: var(--blitz-primary); background: var(--blitz-primary-soft);
+}
+.donate-option__name {
+  font-family: var(--font-mono); font-size: var(--t-sm); font-weight: 700;
+  color: var(--ink); letter-spacing: var(--tr-tight);
+}
+.donate-option__sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-soft); letter-spacing: var(--tr-wide);
+}
+.modal-cancel { width: 100%; justify-content: center; }
 
 /* ── Savings pill ──────────────────────────────────────── */
 .savings-pill {

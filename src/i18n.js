@@ -64,9 +64,16 @@ export const STRINGS = {
     before: 'Before',
     after: 'After',
 
-    // Footer
+    // Footer & donate modal
     feedback: 'Send Feedback',
-    donate: '☕ Trakteer',
+    donate: '☕ Buy me a coffee',
+    donateModalTitle: 'Pick your currency',
+    donateModalDesc: "We'll send you to the right platform.",
+    donateTrakteerLabel: 'Trakteer',
+    donateTrakteerSub: 'Indonesian Rupiah · IDR',
+    donateKofiLabel: 'Ko-fi',
+    donateKofiSub: 'All other currencies',
+    donateCancel: 'Cancel',
   },
 
   id: {
@@ -134,8 +141,15 @@ export const STRINGS = {
     before: 'Sebelum',
     after: 'Sesudah',
 
-    // Footer
+    // Footer & donate modal
     feedback: 'Kirim Masukan',
-    donate: '☕ Trakteer',
+    donate: '☕ Donasi Kopi Jago',
+    donateModalTitle: 'Pilih mata uangmu',
+    donateModalDesc: 'Kita arahkan ke platform yang sesuai.',
+    donateTrakteerLabel: 'Trakteer',
+    donateTrakteerSub: 'Rupiah Indonesia · IDR',
+    donateKofiLabel: 'Ko-fi',
+    donateKofiSub: 'Mata uang lainnya',
+    donateCancel: 'Batal',
   },
 }

@@ -1,0 +1,6 @@
+# Force UTF-8 charset for all served files
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .html .js .css .json .svg
+
+# Correct MIME type for WebAssembly
+AddType application/wasm .wasm

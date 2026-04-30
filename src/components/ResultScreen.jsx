@@ -1,23 +1,21 @@
 import { formatSize, pctSaved, savingsClass, savingsLabel } from '../utils/format'
 import { FORMAT_META } from '../encoders/index.js'
 
-export default function ResultScreen({ results, onDownloadOne, onDownloadAll, onReset }) {
+export default function ResultScreen({ results, onDownloadOne, onDownloadAll, onReset, t }) {
   return (
     <main className="app-main">
       <section className="result-section">
 
         <div className="result-header">
-          <h2 className="result-title">
-            {results.length} image{results.length !== 1 ? 's' : ''} converted
-          </h2>
+          <h2 className="result-title">{t.resultTitle(results.length)}</h2>
           <div className="result-actions">
             {results.length > 1 && (
               <button className="btn btn--secondary" onClick={onDownloadAll}>
-                Download All (ZIP)
+                {t.downloadAll}
               </button>
             )}
             <button className="btn btn--ghost" onClick={onReset}>
-              ← Convert More
+              {t.convertMore}
             </button>
           </div>
         </div>
@@ -43,7 +41,7 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
 
                 <div className="file-card__preview">
                   <div className="preview-col">
-                    <span className="preview-col__label">Before</span>
+                    <span className="preview-col__label">{t.before}</span>
                     <div className="preview-img-box">
                       <img src={r.originalUrl} alt="Original" loading="lazy" />
                     </div>
@@ -51,7 +49,7 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
                   </div>
                   <div className="preview-arrow">→</div>
                   <div className="preview-col">
-                    <span className="preview-col__label">After</span>
+                    <span className="preview-col__label">{t.after}</span>
                     <div className="preview-img-box">
                       <img src={r.blobUrl} alt="Converted" loading="lazy" />
                     </div>

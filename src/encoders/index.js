@@ -4,18 +4,18 @@ import { convertFile as convertBMP }                         from './bmp.js'
 
 export const FORMAT_STEPS = {
   webp: [
-    { id: 'encoder', label: 'Initializing WebP encoder' },
-    { id: 'decode',  label: 'Loading & decoding image'  },
-    { id: 'encode',  label: 'Encoding to WebP'          },
+    { id: 'encoder', labelKey: 'encoder_webp', label: 'Initializing WebP encoder' },
+    { id: 'decode',  labelKey: 'decode',        label: 'Loading & decoding image'  },
+    { id: 'encode',  labelKey: 'encode_webp',   label: 'Encoding to WebP'          },
   ],
   avif: [
-    { id: 'encoder', label: 'Initializing AVIF encoder' },
-    { id: 'decode',  label: 'Loading & decoding image'  },
-    { id: 'encode',  label: 'Encoding to AVIF'          },
+    { id: 'encoder', labelKey: 'encoder_avif', label: 'Initializing AVIF encoder' },
+    { id: 'decode',  labelKey: 'decode',        label: 'Loading & decoding image'  },
+    { id: 'encode',  labelKey: 'encode_avif',   label: 'Encoding to AVIF'          },
   ],
   bmp: [
-    { id: 'decode',  label: 'Loading & decoding image'  },
-    { id: 'encode',  label: 'Writing BMP data'          },
+    { id: 'decode',  labelKey: 'decode',       label: 'Loading & decoding image'  },
+    { id: 'encode',  labelKey: 'encode_bmp',   label: 'Writing BMP data'          },
   ],
 }
 

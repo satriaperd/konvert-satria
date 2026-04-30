@@ -1,4 +1,4 @@
-export default function Footer() {
+export default function Footer({ t }) {
   const year = new Date().getFullYear()
 
   const handleFeedback = () => {
@@ -10,9 +10,19 @@ export default function Footer() {
   return (
     <footer className="app-footer">
       <span className="app-footer__copy">© {year} CimangClub</span>
-      <button className="feedback-btn" onClick={handleFeedback} type="button">
-        Send Feedback
-      </button>
+      <div className="app-footer__actions">
+        <a
+          className="donate-btn"
+          href="https://trakteer.id/satriaperd/tip"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t.donate}
+        </a>
+        <button className="feedback-btn" onClick={handleFeedback} type="button">
+          {t.feedback}
+        </button>
+      </div>
     </footer>
   )
 }

@@ -5,7 +5,7 @@ function StepIcon({ status }) {
   return '○'
 }
 
-export default function ProcessingScreen({ fileStatuses, onViewResults }) {
+export default function ProcessingScreen({ fileStatuses, onViewResults, t }) {
   const total      = fileStatuses.length
   const doneCount  = fileStatuses.filter(s => s.status === 'done').length
   const errCount   = fileStatuses.filter(s => s.status === 'error').length
@@ -16,34 +16,30 @@ export default function ProcessingScreen({ fileStatuses, onViewResults }) {
     <main className="app-main">
       <section className="proc-section">
 
-        {/* Header */}
         <div className="proc-header">
           <div>
             <h2 className="proc-title">
-              {allSettled ? `${doneCount} of ${total} converted` : 'Converting images…'}
+              {allSettled ? t.processingDone(doneCount, total) : t.processingTitle}
             </h2>
             {allSettled && (
               <p className="proc-sub">
-                {hasError ? `${errCount} file${errCount > 1 ? 's' : ''} failed — check details below.` : 'All done!'}
+                {hasError ? t.errorsSummary(errCount) : t.allDone}
               </p>
             )}
           </div>
           {allSettled && doneCount > 0 && (
             <button className="btn btn--primary" onClick={onViewResults}>
-              View Results →
+              {t.viewResults}
             </button>
           )}
         </div>
 
-        {/* Global error alert */}
         {allSettled && hasError && (
           <div className="proc-alert" role="alert">
-            <strong>Some files could not be converted.</strong>
-            {' '}Review the errors below. Successfully converted files are still available.
+            {t.procAlert}
           </div>
         )}
 
-        {/* Per-file checklist */}
         <div className="file-status-list">
           {fileStatuses.map(fs => {
             const isExpanded = fs.status === 'active' || fs.status === 'done' || fs.status === 'error'
@@ -52,10 +48,10 @@ export default function ProcessingScreen({ fileStatuses, onViewResults }) {
                 <div className="file-status__head">
                   <span className="file-status__name">{fs.fileName}</span>
                   <span className={`file-status__tag file-status__tag--${fs.status}`}>
-                    {fs.status === 'pending'  && 'Waiting'}
-                    {fs.status === 'active'   && 'Processing…'}
-                    {fs.status === 'done'     && '✓ Done'}
-                    {fs.status === 'error'    && '✕ Failed'}
+                    {fs.status === 'pending' && t.waiting}
+                    {fs.status === 'active'  && t.processing}
+                    {fs.status === 'done'    && t.done}
+                    {fs.status === 'error'   && t.failed}
                   </span>
                 </div>
 
@@ -66,7 +62,9 @@ export default function ProcessingScreen({ fileStatuses, onViewResults }) {
                         <span className={`step-icon step-icon--${step.status}`}>
                           <StepIcon status={step.status} />
                         </span>
-                        <span className="step-label">{step.label}</span>
+                        <span className="step-label">
+                          {(t.steps && t.steps[step.labelKey]) || step.label}
+                        </span>
                       </div>
                     ))}
                     {fs.error && (

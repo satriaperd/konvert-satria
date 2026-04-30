@@ -9,6 +9,7 @@ import ProcessingScreen from './components/ProcessingScreen'
 import ResultScreen from './components/ResultScreen'
 import { convertFile, warmup, FORMAT_STEPS, FORMAT_META } from './encoders/index.js'
 import { isSupported, uid, formatSize } from './utils/format'
+import { STRINGS } from './i18n.js'
 
 function makeStatuses(files, format) {
   return files.map(f => ({
@@ -30,9 +31,14 @@ export default function App() {
     if (saved) return saved
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
+  const [lang,          setLang]          = useState(() =>
+    localStorage.getItem('konvert-lang') || 'en'
+  )
   const [screen,        setScreen]        = useState('upload')
   const [fileStatuses,  setFileStatuses]  = useState([])
   const [results,       setResults]       = useState([])
+
+  const t = STRINGS[lang]
 
   // ── Theme ────────────────────────────────────────────────
   useEffect(() => {
@@ -41,6 +47,15 @@ export default function App() {
   }, [theme])
 
   const toggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+
+  // ── Language ─────────────────────────────────────────────
+  const toggleLang = useCallback(() => {
+    setLang(l => {
+      const next = l === 'en' ? 'id' : 'en'
+      localStorage.setItem('konvert-lang', next)
+      return next
+    })
+  }, [])
 
   // ── File management ──────────────────────────────────────
   const addFiles = useCallback((incoming) => {
@@ -54,7 +69,7 @@ export default function App() {
     }))
 
     setFiles(prev => [...prev, ...entries])
-    warmup(outputFormat) // pre-init WASM while user reviews files
+    warmup(outputFormat)
 
     entries.forEach(entry => {
       createImageBitmap(entry.file)
@@ -175,27 +190,28 @@ export default function App() {
   // ── Render ───────────────────────────────────────────────
   return (
     <>
-      <Header onToggleTheme={toggleTheme} />
+      <Header onToggleTheme={toggleTheme} onToggleLang={toggleLang} t={t} />
 
       {screen === 'upload' && (
         <main className="app-main">
-          <DropZone onFiles={addFiles} />
+          <DropZone onFiles={addFiles} t={t} />
 
           {files.length > 0 && (
             <>
               <OptionsPanel
                 mode={mode} quality={quality} outputFormat={outputFormat}
                 onMode={setMode} onQuality={setQuality} onFormat={setOutputFormat}
+                t={t}
               />
 
               <section className="files-section">
                 <div className="files-header">
                   <div className="files-header-left">
-                    <span className="files-title">Files</span>
+                    <span className="files-title">{t.filesLabel}</span>
                     <span className="badge">{files.length}</span>
                   </div>
                   <span className="files-total">
-                    {formatSize(files.reduce((s, f) => s + f.file.size, 0))} total
+                    {t.total(formatSize(files.reduce((s, f) => s + f.file.size, 0)))}
                   </span>
                 </div>
                 <div className="files-list">
@@ -207,7 +223,7 @@ export default function App() {
 
               <div className="convert-action">
                 <button className="btn btn--primary btn--lg" onClick={convertAll}>
-                  Convert {files.length === 1 ? '1 image' : `all ${files.length} images`} →
+                  {files.length === 1 ? t.convertOne : t.convertMany(files.length)}
                 </button>
               </div>
             </>
@@ -219,6 +235,7 @@ export default function App() {
         <ProcessingScreen
           fileStatuses={fileStatuses}
           onViewResults={() => setScreen('result')}
+          t={t}
         />
       )}
 
@@ -228,10 +245,11 @@ export default function App() {
           onDownloadOne={downloadOne}
           onDownloadAll={downloadAll}
           onReset={reset}
+          t={t}
         />
       )}
 
-      <Footer />
+      <Footer t={t} />
     </>
   )
 }

@@ -34,6 +34,16 @@
   cursor: pointer; transition: all var(--dur-1) var(--ease); flex-shrink: 0;
 }
 .theme-btn:hover { border-color: var(--ink); color: var(--ink); }
+.lang-btn {
+  height: 34px; padding: 0 var(--s-2);
+  border-radius: var(--r-1); border: var(--bw) solid var(--hairline);
+  background: var(--bg-elev); color: var(--ink-mid);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: var(--tr-wider); text-transform: uppercase;
+  display: grid; place-items: center;
+  cursor: pointer; transition: all var(--dur-1) var(--ease); flex-shrink: 0;
+}
+.lang-btn:hover { border-color: var(--ink); color: var(--ink); }
 .privacy-badge { display: none; }
 @media (min-width: 480px) { .privacy-badge { display: inline-flex; } }
 
@@ -371,6 +381,7 @@
   font-family: var(--font-mono); font-size: 11px;
   color: var(--ink-faint); letter-spacing: var(--tr-wide);
 }
+.app-footer__actions { display: flex; align-items: center; gap: var(--s-2); }
 .feedback-btn {
   font-family: var(--font-mono); font-size: 11px; font-weight: 600;
   letter-spacing: var(--tr-wide); text-transform: uppercase;
@@ -380,6 +391,18 @@
   cursor: pointer; transition: all var(--dur-1) var(--ease);
 }
 .feedback-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--bg-tint); }
+.donate-btn {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: var(--tr-wide); text-transform: uppercase;
+  padding: 5px 10px; border-radius: var(--r-1);
+  border: var(--bw) solid var(--blitz-primary);
+  background: transparent; color: var(--blitz-primary-deep);
+  cursor: pointer; transition: all var(--dur-1) var(--ease);
+  text-decoration: none; display: inline-flex; align-items: center;
+}
+.donate-btn:hover { background: var(--blitz-primary); color: var(--blitz-on-primary); }
+[data-theme="dark"] .donate-btn { color: var(--blitz-primary); }
+[data-theme="dark"] .donate-btn:hover { color: var(--blitz-on-primary); }
 
 /* ── Savings pill ──────────────────────────────────────── */
 .savings-pill {

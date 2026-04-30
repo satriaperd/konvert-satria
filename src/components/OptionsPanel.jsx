@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 
 const FORMATS = [
   { id: 'webp', label: 'WebP' },
@@ -6,8 +6,28 @@ const FORMATS = [
   { id: 'bmp',  label: 'BMP'  },
 ]
 
+function useTabIndicator(containerRef, indicatorRef, activeId) {
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    const indicator = indicatorRef.current
+    if (!container || !indicator) return
+    const active = container.querySelector('.tab.is-active')
+    if (!active) return
+    indicator.style.left  = active.offsetLeft + 'px'
+    indicator.style.width = active.offsetWidth + 'px'
+  }, [activeId, containerRef, indicatorRef])
+}
+
 export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQuality, onFormat, t }) {
   const [infoOpen, setInfoOpen] = useState(false)
+
+  const fmtTabsRef = useRef(null)
+  const fmtIndRef  = useRef(null)
+  const modeTabsRef = useRef(null)
+  const modeIndRef  = useRef(null)
+
+  useTabIndicator(fmtTabsRef,  fmtIndRef,  outputFormat)
+  useTabIndicator(modeTabsRef, modeIndRef, mode)
 
   return (
     <section className="options-panel">
@@ -16,7 +36,8 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
       <div className="options-row">
         <div>
           <span className="field-label">{t.outputFormat}</span>
-          <div className="tabs--boxed" role="tablist">
+          <div className="tabs--boxed" role="tablist" ref={fmtTabsRef}>
+            <span className="tab-indicator" ref={fmtIndRef} aria-hidden="true" />
             {FORMATS.map(f => (
               <button
                 key={f.id}
@@ -49,7 +70,8 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
         <div className="options-row">
           <div>
             <span className="field-label">{t.compressionMode}</span>
-            <div className="tabs--boxed" role="tablist">
+            <div className="tabs--boxed" role="tablist" ref={modeTabsRef}>
+              <span className="tab-indicator" ref={modeIndRef} aria-hidden="true" />
               {['lossy', 'lossless'].map(m => (
                 <button
                   key={m}

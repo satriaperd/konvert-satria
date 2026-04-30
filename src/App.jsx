@@ -193,7 +193,7 @@ export default function App() {
       <Header onToggleTheme={toggleTheme} onToggleLang={toggleLang} t={t} />
 
       {screen === 'upload' && (
-        <main className="app-main">
+        <main className="app-main screen-enter" key="upload">
           <DropZone onFiles={addFiles} t={t} />
 
           {files.length > 0 && (
@@ -232,21 +232,25 @@ export default function App() {
       )}
 
       {screen === 'processing' && (
-        <ProcessingScreen
-          fileStatuses={fileStatuses}
-          onViewResults={() => setScreen('result')}
-          t={t}
-        />
+        <div className="screen-enter" key="processing">
+          <ProcessingScreen
+            fileStatuses={fileStatuses}
+            onViewResults={() => setScreen('result')}
+            t={t}
+          />
+        </div>
       )}
 
       {screen === 'result' && (
-        <ResultScreen
-          results={results}
-          onDownloadOne={downloadOne}
-          onDownloadAll={downloadAll}
-          onReset={reset}
-          t={t}
-        />
+        <div className="screen-enter" key="result">
+          <ResultScreen
+            results={results}
+            onDownloadOne={downloadOne}
+            onDownloadAll={downloadAll}
+            onReset={reset}
+            t={t}
+          />
+        </div>
       )}
 
       <Footer t={t} />

@@ -38,6 +38,9 @@ export const STRINGS = {
     convertMany: (n) => `Convert all ${n} images →`,
     convertOnePdf: 'Convert 1 PDF →',
     convertManyPdf: (n) => `Convert all ${n} PDFs →`,
+    convertOneEps: 'Convert 1 EPS →',
+    convertManyEps: (n) => `Convert all ${n} EPS files →`,
+    epsNote: 'First use downloads the EPS converter in the background (~15 MB, cached after that).',
 
     // Processing
     processingTitle: 'Converting images…',
@@ -63,6 +66,8 @@ export const STRINGS = {
       render_svg:   'Rendering to SVG',
       render_png:   'Rendering to PNG',
       render_jpg:   'Rendering to JPG',
+      getting_ready: 'Getting things ready (first time only)…',
+      load_eps:     'Reading EPS file…',
     },
 
     // Result screen
@@ -123,6 +128,9 @@ export const STRINGS = {
     convertMany: (n) => `Konversi semua ${n} gambar →`,
     convertOnePdf: 'Konversi 1 PDF →',
     convertManyPdf: (n) => `Konversi semua ${n} PDF →`,
+    convertOneEps: 'Konversi 1 EPS →',
+    convertManyEps: (n) => `Konversi semua ${n} file EPS →`,
+    epsNote: 'Penggunaan pertama mengunduh konverter EPS di latar belakang (~15 MB, tersimpan setelah itu).',
 
     // Processing
     processingTitle: 'Mengonversi gambar…',
@@ -148,6 +156,8 @@ export const STRINGS = {
       render_svg:   'Merender ke SVG',
       render_png:   'Merender ke PNG',
       render_jpg:   'Merender ke JPG',
+      getting_ready: 'Sedang menyiapkan (hanya pertama kali)…',
+      load_eps:     'Membaca file EPS…',
     },
 
     // Result screen

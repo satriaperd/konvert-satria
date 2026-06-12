@@ -53,7 +53,7 @@ export default function DropZone({ onFiles, t }) {
           ref={inputRef}
           type="file"
           multiple
-          accept=".jpg,.jpeg,.png,.svg,.pdf,image/jpeg,image/png,image/svg+xml,application/pdf"
+          accept=".jpg,.jpeg,.png,.svg,.pdf,.eps,image/jpeg,image/png,image/svg+xml,application/pdf,application/postscript,image/x-eps"
           hidden
           onChange={handleChange}
         />
@@ -78,6 +78,7 @@ export default function DropZone({ onFiles, t }) {
           <span className="badge">PNG</span>
           <span className="badge">SVG</span>
           <span className="badge">PDF</span>
+          <span className="badge">EPS</span>
           <span className="badge badge--ok">100% client-side</span>
         </div>
       </div>

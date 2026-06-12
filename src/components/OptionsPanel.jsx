@@ -12,6 +12,10 @@ const PDF_FORMATS = [
   { id: 'jpg', label: 'JPG' },
 ]
 
+const EPS_FORMATS = [
+  { id: 'svg', label: 'SVG' },
+]
+
 function useTabIndicator(containerRef, indicatorRef, activeId) {
   useLayoutEffect(() => {
     const container = containerRef.current
@@ -36,7 +40,8 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
   useTabIndicator(modeTabsRef, modeIndRef, mode)
 
   const isPdfMode   = inputType === 'pdf'
-  const formats     = isPdfMode ? PDF_FORMATS : IMG_FORMATS
+  const isEpsMode   = inputType === 'eps'
+  const formats     = isEpsMode ? EPS_FORMATS : isPdfMode ? PDF_FORMATS : IMG_FORMATS
   const isBmp       = outputFormat === 'bmp'
   const isSvg       = outputFormat === 'svg'
   const isPng       = outputFormat === 'png'
@@ -76,11 +81,14 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
       {outputFormat === 'bmp' && (
         <div className="format-note">{t.bmpNote}</div>
       )}
-      {isSvg && (
+      {isSvg && !isEpsMode && (
         <div className="format-note">{t.svgNote}</div>
       )}
       {isPdfMode && (
         <div className="format-note">{t.pdfNote}</div>
+      )}
+      {isEpsMode && (
+        <div className="format-note">{t.epsNote}</div>
       )}
 
       {/* Compression mode — only for webp / avif */}

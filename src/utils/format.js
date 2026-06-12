@@ -31,17 +31,31 @@ export function isPDF(file) {
   return file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
 }
 
+export function isEPS(file) {
+  return (
+    file.type === 'application/postscript' ||
+    file.type === 'image/x-eps' ||
+    /\.eps$/i.test(file.name)
+  )
+}
+
 export function isSupported(file) {
-  const TYPES = ['image/jpeg', 'image/png', 'image/svg+xml', 'application/pdf']
+  const TYPES = [
+    'image/jpeg', 'image/png', 'image/svg+xml',
+    'application/pdf',
+    'application/postscript', 'image/x-eps',
+  ]
   if (TYPES.includes(file.type)) return true
-  return /\.(jpg|jpeg|png|svg|pdf)$/i.test(file.name)
+  return /\.(jpg|jpeg|png|svg|pdf|eps)$/i.test(file.name)
 }
 
 export function fileTypeLabel(file) {
-  if (file.type === 'image/png')       return 'PNG'
-  if (file.type === 'image/svg+xml')   return 'SVG'
-  if (file.type === 'image/jpeg')      return 'JPEG'
-  if (file.type === 'application/pdf') return 'PDF'
+  if (file.type === 'image/png')            return 'PNG'
+  if (file.type === 'image/svg+xml')        return 'SVG'
+  if (file.type === 'image/jpeg')           return 'JPEG'
+  if (file.type === 'application/pdf')      return 'PDF'
+  if (file.type === 'application/postscript' ||
+      file.type === 'image/x-eps')          return 'EPS'
   const ext = file.name.split('.').pop()?.toUpperCase()
   return ext || 'IMAGE'
 }

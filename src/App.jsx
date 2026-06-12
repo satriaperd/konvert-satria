@@ -8,17 +8,20 @@ import FilePreviewCard from './components/FilePreviewCard'
 import ProcessingScreen from './components/ProcessingScreen'
 import ResultScreen from './components/ResultScreen'
 import { convertFile, warmup, FORMAT_STEPS, FORMAT_META, PDF_OUTPUT_FORMATS } from './encoders/index.js'
-import { isSupported, isPDF, uid, formatSize } from './utils/format'
+import { isSupported, isPDF, isEPS, uid, formatSize } from './utils/format'
 import { STRINGS } from './i18n.js'
 
 function makeStatuses(files, format) {
-  return files.map(f => ({
-    id:       f.id,
-    fileName: f.file.name,
-    status:   'pending',
-    steps:    FORMAT_STEPS[format].map(s => ({ ...s, status: 'pending' })),
-    error:    null,
-  }))
+  return files.map(f => {
+    const stepsKey = isEPS(f.file) ? 'eps-svg' : format
+    return {
+      id:       f.id,
+      fileName: f.file.name,
+      status:   'pending',
+      steps:    FORMAT_STEPS[stepsKey].map(s => ({ ...s, status: 'pending' })),
+      error:    null,
+    }
+  })
 }
 
 export default function App() {
@@ -26,7 +29,8 @@ export default function App() {
   const [mode,          setMode]          = useState('lossy')
   const [quality,       setQuality]       = useState(75)
   const [outputFormat,  setOutputFormat]  = useState('webp')
-  const hasPdf = files.some(f => isPDF(f.file))
+  const hasEps = files.some(f => isEPS(f.file))
+  const hasPdf = !hasEps && files.some(f => isPDF(f.file))
   const [theme,         setTheme]         = useState(() => {
     const saved = localStorage.getItem('konvert-theme')
     if (saved) return saved
@@ -44,9 +48,10 @@ export default function App() {
   // ── Auto-switch output format when input type changes ────
   useEffect(() => {
     if (!files.length) return
-    if (hasPdf && !PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('svg')
-    else if (!hasPdf && PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('webp')
-  }, [hasPdf]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (hasEps && outputFormat !== 'svg') setOutputFormat('svg')
+    else if (!hasEps && hasPdf && !PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('svg')
+    else if (!hasEps && !hasPdf && PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('webp')
+  }, [hasEps, hasPdf]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Theme ────────────────────────────────────────────────
   useEffect(() => {
@@ -80,7 +85,7 @@ export default function App() {
     warmup(outputFormat)
 
     entries.forEach(entry => {
-      if (isPDF(entry.file)) return
+      if (isPDF(entry.file) || isEPS(entry.file)) return
       createImageBitmap(entry.file)
         .then(bm => {
           setFiles(prev => prev.map(f =>
@@ -165,7 +170,7 @@ export default function App() {
     const ext = FORMAT_META[result.format]?.ext || '.webp'
     const a = document.createElement('a')
     a.href     = result.blobUrl
-    a.download = result.file.name.replace(/\.(jpg|jpeg|png|svg|pdf)$/i, ext)
+    a.download = result.file.name.replace(/\.(jpg|jpeg|png|svg|pdf|eps)$/i, ext)
     a.click()
   }, [])
 
@@ -174,7 +179,7 @@ export default function App() {
     const zip = new JSZip()
     results.forEach(r => {
       const ext = FORMAT_META[r.format]?.ext || '.webp'
-      zip.file(r.file.name.replace(/\.(jpg|jpeg|png|svg|pdf)$/i, ext), r.blob)
+      zip.file(r.file.name.replace(/\.(jpg|jpeg|png|svg|pdf|eps)$/i, ext), r.blob)
     })
     const zipBlob = await zip.generateAsync({
       type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 },
@@ -210,7 +215,7 @@ export default function App() {
               <OptionsPanel
                 mode={mode} quality={quality} outputFormat={outputFormat}
                 onMode={setMode} onQuality={setQuality} onFormat={setOutputFormat}
-                inputType={hasPdf ? 'pdf' : 'image'}
+                inputType={hasEps ? 'eps' : hasPdf ? 'pdf' : 'image'}
                 t={t}
               />
 
@@ -233,9 +238,11 @@ export default function App() {
 
               <div className="convert-action">
                 <button className="btn btn--primary btn--lg" onClick={convertAll}>
-                  {hasPdf
-                    ? (files.length === 1 ? t.convertOnePdf : t.convertManyPdf(files.length))
-                    : (files.length === 1 ? t.convertOne    : t.convertMany(files.length))
+                  {hasEps
+                    ? (files.length === 1 ? t.convertOneEps : t.convertManyEps(files.length))
+                    : hasPdf
+                      ? (files.length === 1 ? t.convertOnePdf : t.convertManyPdf(files.length))
+                      : (files.length === 1 ? t.convertOne    : t.convertMany(files.length))
                   }
                 </button>
               </div>

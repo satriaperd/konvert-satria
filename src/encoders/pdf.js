@@ -3,11 +3,6 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.js?url'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
-async function loadPDF(file) {
-  const data = await file.arrayBuffer()
-  return pdfjsLib.getDocument({ data }).promise
-}
-
 function sanitizeSVG(raw) {
   // XMLSerializer sometimes emits <svg:svg>, <svg:path>, etc. — strip the prefix
   let s = raw.replace(/<(\/?)svg:/g, '<$1')
@@ -21,11 +16,11 @@ function sanitizeSVG(raw) {
   return s
 }
 
-async function renderToSVG(page) {
+// Exported so eps.js can reuse the same SVG pipeline after GS converts EPS → PDF
+export async function renderToSVG(page) {
   const viewport = page.getViewport({ scale: 1 })
   const operatorList = await page.getOperatorList()
   const svgGfx = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs)
-  // Don't embed font blobs — vector assets from Vecteezy use outlined paths, not live text
   svgGfx.embedFonts = false
   const svgEl = await svgGfx.getSVG(operatorList, viewport)
   const svg = sanitizeSVG(new XMLSerializer().serializeToString(svgEl))
@@ -57,18 +52,24 @@ async function renderToRaster(page, mime, quality) {
   }
 }
 
-export async function convertFile(file, quality, isLossless, format, onStep) {
-  onStep('load_pdf', 'active')
-  const pdf = await loadPDF(file)
-  onStep('load_pdf', 'done')
+async function renderPage(page, quality, format) {
+  if (format === 'svg') return renderToSVG(page)
+  return renderToRaster(page, format === 'jpg' ? 'image/jpeg' : 'image/png', quality)
+}
 
+// Exported so eps.js can call this after getting PDF bytes from Ghostscript
+export async function convertFromData(pdfData, quality, format, onStep) {
   onStep('render', 'active')
+  const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise
   const page = await pdf.getPage(1)
-
-  const result = format === 'svg'
-    ? await renderToSVG(page)
-    : await renderToRaster(page, format === 'jpg' ? 'image/jpeg' : 'image/png', quality)
-
+  const result = await renderPage(page, quality, format)
   onStep('render', 'done')
   return { ...result, resized: false }
+}
+
+export async function convertFile(file, quality, isLossless, format, onStep) {
+  onStep('load_pdf', 'active')
+  const data = await file.arrayBuffer()
+  onStep('load_pdf', 'done')
+  return convertFromData(data, quality, format, onStep)
 }

@@ -27,16 +27,21 @@ export function enlargedTip(convMode) {
   return 'WebP quality terlalu tinggi untuk sumber ini — coba turunkan di bawah 75%.'
 }
 
+export function isPDF(file) {
+  return file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+}
+
 export function isSupported(file) {
-  const TYPES = ['image/jpeg', 'image/png', 'image/svg+xml']
+  const TYPES = ['image/jpeg', 'image/png', 'image/svg+xml', 'application/pdf']
   if (TYPES.includes(file.type)) return true
-  return /\.(jpg|jpeg|png|svg)$/i.test(file.name)
+  return /\.(jpg|jpeg|png|svg|pdf)$/i.test(file.name)
 }
 
 export function fileTypeLabel(file) {
-  if (file.type === 'image/png')     return 'PNG'
-  if (file.type === 'image/svg+xml') return 'SVG'
-  if (file.type === 'image/jpeg')    return 'JPEG'
+  if (file.type === 'image/png')       return 'PNG'
+  if (file.type === 'image/svg+xml')   return 'SVG'
+  if (file.type === 'image/jpeg')      return 'JPEG'
+  if (file.type === 'application/pdf') return 'PDF'
   const ext = file.name.split('.').pop()?.toUpperCase()
   return ext || 'IMAGE'
 }

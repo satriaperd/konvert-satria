@@ -23,6 +23,8 @@ export const STRINGS = {
     avifWarnBold: 'Heads up:',
     avifWarnText: 'AVIF encoding is significantly slower than WebP — expect 5–20 seconds per image. This is normal behavior from the AVIF encoder (libaom).',
     bmpNote: 'BMP stores raw uncompressed pixel data — no quality settings apply. Output files will be large.',
+    pdfNote: 'Only the first page is exported. SVG preserves vector paths for Figma import.',
+    svgNote: 'Vector output — import directly into Figma, Illustrator, or any vector editor.',
     infoLossyDesc: 'Discards some image data to shrink file size. At 80%+ quality, the difference is barely visible. Best for web photos, blog content, and social media.',
     infoLossyStat: 'Typical savings vs JPEG: 25–75%',
     infoLosslessDesc: 'No data discarded — encodes at quality=100. Output from a JPEG source is almost always larger because JPEG is already lossy. Ideal for PNG/screenshots.',
@@ -34,6 +36,8 @@ export const STRINGS = {
     total: (size) => `${size} total`,
     convertOne: 'Convert 1 image →',
     convertMany: (n) => `Convert all ${n} images →`,
+    convertOnePdf: 'Convert 1 PDF →',
+    convertManyPdf: (n) => `Convert all ${n} PDFs →`,
 
     // Processing
     processingTitle: 'Converting images…',
@@ -55,6 +59,10 @@ export const STRINGS = {
       encode_webp:  'Encoding to WebP',
       encode_avif:  'Encoding to AVIF',
       encode_bmp:   'Writing BMP data',
+      load_pdf:     'Loading PDF',
+      render_svg:   'Rendering to SVG',
+      render_png:   'Rendering to PNG',
+      render_jpg:   'Rendering to JPG',
     },
 
     // Result screen
@@ -100,6 +108,8 @@ export const STRINGS = {
     avifWarnBold: 'Perhatian:',
     avifWarnText: 'Encoding AVIF jauh lebih lambat dari WebP — perkirakan 5–20 detik per gambar. Ini perilaku normal dari encoder AVIF (libaom).',
     bmpNote: 'BMP menyimpan data piksel mentah tanpa kompresi — pengaturan kualitas tidak berlaku. Ukuran file output akan besar.',
+    pdfNote: 'Hanya halaman pertama yang diekspor. SVG mempertahankan jalur vektor untuk diimpor ke Figma.',
+    svgNote: 'Output vektor — impor langsung ke Figma, Illustrator, atau editor vektor lainnya.',
     infoLossyDesc: 'Membuang sebagian data gambar untuk memperkecil ukuran file. Di kualitas 80%+, perbedaannya hampir tidak terlihat. Cocok untuk foto web, blog, dan media sosial.',
     infoLossyStat: 'Tipikal penghematan vs JPEG: 25–75%',
     infoLosslessDesc: 'Tidak ada data yang dibuang — encode di kualitas=100. Output dari sumber JPEG hampir selalu lebih besar karena JPEG sudah lossy. Ideal untuk PNG/screenshot.',
@@ -111,6 +121,8 @@ export const STRINGS = {
     total: (size) => `${size} total`,
     convertOne: 'Konversi 1 gambar →',
     convertMany: (n) => `Konversi semua ${n} gambar →`,
+    convertOnePdf: 'Konversi 1 PDF →',
+    convertManyPdf: (n) => `Konversi semua ${n} PDF →`,
 
     // Processing
     processingTitle: 'Mengonversi gambar…',
@@ -132,6 +144,10 @@ export const STRINGS = {
       encode_webp:  'Encoding ke WebP',
       encode_avif:  'Encoding ke AVIF',
       encode_bmp:   'Menulis data BMP',
+      load_pdf:     'Memuat PDF',
+      render_svg:   'Merender ke SVG',
+      render_png:   'Merender ke PNG',
+      render_jpg:   'Merender ke JPG',
     },
 
     // Result screen

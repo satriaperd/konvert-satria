@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://konvert.cimangclub.my.id/sitemap.xml

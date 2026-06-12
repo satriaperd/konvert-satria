@@ -1,12 +1,15 @@
 import { memo } from 'react'
-import { formatSize, fileTypeLabel } from '../utils/format'
+import { formatSize, fileTypeLabel, isPDF } from '../utils/format'
 
 const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
   const { id, file, previewUrl, w, h } = entry
   return (
     <div className="preview-card">
       <div className="preview-card__thumb">
-        <img src={previewUrl} alt={file.name} loading="lazy" />
+        {isPDF(file)
+          ? <div className="preview-card__pdf-ph">PDF</div>
+          : <img src={previewUrl} alt={file.name} loading="lazy" />
+        }
       </div>
       <div className="preview-card__info">
         <span className="preview-card__name">{file.name}</span>

@@ -1,9 +1,15 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 
-const FORMATS = [
+const IMG_FORMATS = [
   { id: 'webp', label: 'WebP' },
   { id: 'avif', label: 'AVIF' },
   { id: 'bmp',  label: 'BMP'  },
+]
+
+const PDF_FORMATS = [
+  { id: 'svg', label: 'SVG' },
+  { id: 'png', label: 'PNG' },
+  { id: 'jpg', label: 'JPG' },
 ]
 
 function useTabIndicator(containerRef, indicatorRef, activeId) {
@@ -18,16 +24,24 @@ function useTabIndicator(containerRef, indicatorRef, activeId) {
   }, [activeId, containerRef, indicatorRef])
 }
 
-export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQuality, onFormat, t }) {
+export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQuality, onFormat, inputType, t }) {
   const [infoOpen, setInfoOpen] = useState(false)
 
-  const fmtTabsRef = useRef(null)
-  const fmtIndRef  = useRef(null)
+  const fmtTabsRef  = useRef(null)
+  const fmtIndRef   = useRef(null)
   const modeTabsRef = useRef(null)
   const modeIndRef  = useRef(null)
 
   useTabIndicator(fmtTabsRef,  fmtIndRef,  outputFormat)
   useTabIndicator(modeTabsRef, modeIndRef, mode)
+
+  const isPdfMode   = inputType === 'pdf'
+  const formats     = isPdfMode ? PDF_FORMATS : IMG_FORMATS
+  const isBmp       = outputFormat === 'bmp'
+  const isSvg       = outputFormat === 'svg'
+  const isPng       = outputFormat === 'png'
+  const showMode    = !isBmp && !isSvg && !isPng && outputFormat !== 'jpg'
+  const showQuality = outputFormat === 'jpg' || (showMode && mode === 'lossy')
 
   return (
     <section className="options-panel">
@@ -38,7 +52,7 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
           <span className="field-label">{t.outputFormat}</span>
           <div className="tabs--boxed" role="tablist" ref={fmtTabsRef}>
             <span className="tab-indicator" ref={fmtIndRef} aria-hidden="true" />
-            {FORMATS.map(f => (
+            {formats.map(f => (
               <button
                 key={f.id}
                 className={`tab${outputFormat === f.id ? ' is-active' : ''}`}
@@ -53,20 +67,24 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
         </div>
       </div>
 
-      {/* AVIF slow-encoding warning */}
+      {/* Format notes */}
       {outputFormat === 'avif' && (
         <div className="format-warn" role="alert">
           <strong>{t.avifWarnBold}</strong> {t.avifWarnText}
         </div>
       )}
-
-      {/* BMP note */}
       {outputFormat === 'bmp' && (
         <div className="format-note">{t.bmpNote}</div>
       )}
+      {isSvg && (
+        <div className="format-note">{t.svgNote}</div>
+      )}
+      {isPdfMode && (
+        <div className="format-note">{t.pdfNote}</div>
+      )}
 
-      {/* Compression mode — hidden for BMP */}
-      {outputFormat !== 'bmp' && (
+      {/* Compression mode — only for webp / avif */}
+      {showMode && (
         <div className="options-row">
           <div>
             <span className="field-label">{t.compressionMode}</span>
@@ -96,7 +114,7 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
       )}
 
       {/* Quality slider */}
-      {outputFormat !== 'bmp' && mode === 'lossy' && (
+      {showQuality && (
         <div className="quality-row">
           <div className="quality-header">
             <span className="field-label" style={{ marginBottom: 0 }}>{t.quality}</span>
@@ -117,7 +135,7 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
       )}
 
       {/* Info card */}
-      {outputFormat !== 'bmp' && infoOpen && (
+      {showMode && infoOpen && (
         <div className="info-card">
           <div className="info-card__grid">
             <div className="info-card__col">

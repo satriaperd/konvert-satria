@@ -39,6 +39,10 @@ export function isEPS(file) {
   )
 }
 
+export function isSVG(file) {
+  return file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)
+}
+
 export function isSupported(file) {
   const TYPES = [
     'image/jpeg', 'image/png', 'image/svg+xml',

@@ -1,14 +1,29 @@
+import gsJsUrl from '@jspawn/ghostscript-wasm/gs.js?url'
 import gsWasmUrl from '@jspawn/ghostscript-wasm/gs.wasm?url'
 import { convertFromData } from './pdf.js'
 
 let _gs = null
 
+function injectGSScript(src) {
+  return new Promise((resolve, reject) => {
+    // Avoid double-injection across multiple EPS conversions
+    if (document.querySelector('script[data-ghostscript]')) { resolve(); return }
+    const s = document.createElement('script')
+    s.src = src
+    s.dataset.ghostscript = '1'
+    s.onload = resolve
+    s.onerror = () => reject(new Error('Failed to load EPS converter'))
+    document.head.appendChild(s)
+  })
+}
+
 async function loadGhostscript() {
   if (_gs) return _gs
-  // Dynamic import = code-split by Vite; GS JS (~108 KB) + WASM (15 MB) only
-  // download when the user actually converts an EPS file
-  const { default: initGS } = await import('@jspawn/ghostscript-wasm')
-  _gs = await initGS({ locateFile: () => gsWasmUrl })
+  // Load gs.js as a classic (non-module) script tag so its top-level
+  // `var Module = ...` binds to globalThis. Vite's CJS→ESM transform
+  // intercepts module.exports and breaks globalThis.Module otherwise.
+  await injectGSScript(gsJsUrl)
+  _gs = await globalThis.Module({ locateFile: () => gsWasmUrl })
   return _gs
 }
 
@@ -29,17 +44,14 @@ async function epsToPDFBytes(epsBytes, gs) {
 }
 
 export async function convertFile(file, quality, isLossless, format, onStep) {
-  // Step 1 — lazy-load Ghostscript WASM (cached after first use)
   onStep('getting_ready', 'active')
   const gs = await loadGhostscript()
   onStep('getting_ready', 'done')
 
-  // Step 2 — EPS → PDF via Ghostscript (runs synchronously in WASM)
   onStep('load_eps', 'active')
   const epsBytes = new Uint8Array(await file.arrayBuffer())
   const pdfBytes = await epsToPDFBytes(epsBytes, gs)
   onStep('load_eps', 'done')
 
-  // Step 3 — PDF → SVG via existing pdf.js pipeline (reuses renderToSVG + sanitize)
   return convertFromData(pdfBytes, quality, format, onStep)
 }

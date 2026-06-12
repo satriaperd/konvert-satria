@@ -7,13 +7,13 @@ import OptionsPanel from './components/OptionsPanel'
 import FilePreviewCard from './components/FilePreviewCard'
 import ProcessingScreen from './components/ProcessingScreen'
 import ResultScreen from './components/ResultScreen'
-import { convertFile, warmup, FORMAT_STEPS, FORMAT_META, PDF_OUTPUT_FORMATS } from './encoders/index.js'
-import { isSupported, isPDF, isEPS, uid, formatSize } from './utils/format'
+import { convertFile, warmup, FORMAT_STEPS, FORMAT_META, PDF_OUTPUT_FORMATS, SVG_OUTPUT_FORMATS } from './encoders/index.js'
+import { isSupported, isPDF, isEPS, isSVG, uid, formatSize } from './utils/format'
 import { STRINGS } from './i18n.js'
 
 function makeStatuses(files, format) {
   return files.map(f => {
-    const stepsKey = isEPS(f.file) ? 'eps-svg' : format
+    const stepsKey = isEPS(f.file) ? 'eps-svg' : isSVG(f.file) ? 'svg-input' : format
     return {
       id:       f.id,
       fileName: f.file.name,
@@ -31,6 +31,7 @@ export default function App() {
   const [outputFormat,  setOutputFormat]  = useState('webp')
   const hasEps = files.some(f => isEPS(f.file))
   const hasPdf = !hasEps && files.some(f => isPDF(f.file))
+  const hasSvg = !hasEps && !hasPdf && files.some(f => isSVG(f.file))
   const [theme,         setTheme]         = useState(() => {
     const saved = localStorage.getItem('konvert-theme')
     if (saved) return saved
@@ -50,8 +51,9 @@ export default function App() {
     if (!files.length) return
     if (hasEps && outputFormat !== 'svg') setOutputFormat('svg')
     else if (!hasEps && hasPdf && !PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('svg')
-    else if (!hasEps && !hasPdf && PDF_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('webp')
-  }, [hasEps, hasPdf]) // eslint-disable-line react-hooks/exhaustive-deps
+    else if (!hasEps && !hasPdf && hasSvg && !SVG_OUTPUT_FORMATS.includes(outputFormat)) setOutputFormat('svg')
+    else if (!hasEps && !hasPdf && !hasSvg && (PDF_OUTPUT_FORMATS.includes(outputFormat) || SVG_OUTPUT_FORMATS.includes(outputFormat))) setOutputFormat('webp')
+  }, [hasEps, hasPdf, hasSvg]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Theme ────────────────────────────────────────────────
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function App() {
     warmup(outputFormat)
 
     entries.forEach(entry => {
-      if (isPDF(entry.file) || isEPS(entry.file)) return
+      if (isPDF(entry.file) || isEPS(entry.file) || isSVG(entry.file)) return
       createImageBitmap(entry.file)
         .then(bm => {
           setFiles(prev => prev.map(f =>
@@ -151,10 +153,14 @@ export default function App() {
         )
       } catch (err) {
         setFileStatuses(prev =>
-          prev.map(s => s.id === entry.id
-            ? { ...s, status: 'error', error: err.message || 'Conversion failed' }
-            : s
-          )
+          prev.map(s => s.id !== entry.id ? s : {
+            ...s,
+            status: 'error',
+            error: err.message || 'Conversion failed',
+            steps: s.steps.map(step =>
+              step.status === 'active' ? { ...step, status: 'error' } : step
+            ),
+          })
         )
       }
     }
@@ -215,7 +221,7 @@ export default function App() {
               <OptionsPanel
                 mode={mode} quality={quality} outputFormat={outputFormat}
                 onMode={setMode} onQuality={setQuality} onFormat={setOutputFormat}
-                inputType={hasEps ? 'eps' : hasPdf ? 'pdf' : 'image'}
+                inputType={hasEps ? 'eps' : hasPdf ? 'pdf' : hasSvg ? 'svg' : 'image'}
                 t={t}
               />
 
@@ -241,8 +247,10 @@ export default function App() {
                   {hasEps
                     ? (files.length === 1 ? t.convertOneEps : t.convertManyEps(files.length))
                     : hasPdf
-                      ? (files.length === 1 ? t.convertOnePdf : t.convertManyPdf(files.length))
-                      : (files.length === 1 ? t.convertOne    : t.convertMany(files.length))
+                      ? (files.length === 1 ? t.convertOnePdf  : t.convertManyPdf(files.length))
+                    : hasSvg
+                      ? (files.length === 1 ? t.convertOneSvg  : t.convertManySvg(files.length))
+                      : (files.length === 1 ? t.convertOne     : t.convertMany(files.length))
                   }
                 </button>
               </div>

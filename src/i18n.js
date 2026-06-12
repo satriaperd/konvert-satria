@@ -25,6 +25,7 @@ export const STRINGS = {
     bmpNote: 'BMP stores raw uncompressed pixel data — no quality settings apply. Output files will be large.',
     pdfNote: 'Only the first page is exported. SVG preserves vector paths for Figma import.',
     svgNote: 'Vector output — import directly into Figma, Illustrator, or any vector editor.',
+    svgInputNote: 'Automatically fixes cropped/clipped SVGs — common in files downloaded from Vecteezy and other stock sites.',
     infoLossyDesc: 'Discards some image data to shrink file size. At 80%+ quality, the difference is barely visible. Best for web photos, blog content, and social media.',
     infoLossyStat: 'Typical savings vs JPEG: 25–75%',
     infoLosslessDesc: 'No data discarded — encodes at quality=100. Output from a JPEG source is almost always larger because JPEG is already lossy. Ideal for PNG/screenshots.',
@@ -40,6 +41,8 @@ export const STRINGS = {
     convertManyPdf: (n) => `Convert all ${n} PDFs →`,
     convertOneEps: 'Convert 1 EPS →',
     convertManyEps: (n) => `Convert all ${n} EPS files →`,
+    convertOneSvg: 'Fix & convert 1 SVG →',
+    convertManySvg: (n) => `Fix & convert all ${n} SVGs →`,
     epsNote: 'First use downloads the EPS converter in the background (~15 MB, cached after that).',
 
     // Processing
@@ -67,7 +70,9 @@ export const STRINGS = {
       render_png:   'Rendering to PNG',
       render_jpg:   'Rendering to JPG',
       getting_ready: 'Getting things ready (first time only)…',
-      load_eps:     'Reading EPS file…',
+      load_eps:      'Reading EPS file…',
+      load_svg:      'Reading & fixing SVG…',
+      render_output: 'Rendering output…',
     },
 
     // Result screen
@@ -115,6 +120,7 @@ export const STRINGS = {
     bmpNote: 'BMP menyimpan data piksel mentah tanpa kompresi — pengaturan kualitas tidak berlaku. Ukuran file output akan besar.',
     pdfNote: 'Hanya halaman pertama yang diekspor. SVG mempertahankan jalur vektor untuk diimpor ke Figma.',
     svgNote: 'Output vektor — impor langsung ke Figma, Illustrator, atau editor vektor lainnya.',
+    svgInputNote: 'Otomatis memperbaiki SVG yang terpotong/terkrop — umum terjadi pada file yang diunduh dari Vecteezy dan situs stok lainnya.',
     infoLossyDesc: 'Membuang sebagian data gambar untuk memperkecil ukuran file. Di kualitas 80%+, perbedaannya hampir tidak terlihat. Cocok untuk foto web, blog, dan media sosial.',
     infoLossyStat: 'Tipikal penghematan vs JPEG: 25–75%',
     infoLosslessDesc: 'Tidak ada data yang dibuang — encode di kualitas=100. Output dari sumber JPEG hampir selalu lebih besar karena JPEG sudah lossy. Ideal untuk PNG/screenshot.',
@@ -130,6 +136,8 @@ export const STRINGS = {
     convertManyPdf: (n) => `Konversi semua ${n} PDF →`,
     convertOneEps: 'Konversi 1 EPS →',
     convertManyEps: (n) => `Konversi semua ${n} file EPS →`,
+    convertOneSvg: 'Perbaiki & konversi 1 SVG →',
+    convertManySvg: (n) => `Perbaiki & konversi semua ${n} SVG →`,
     epsNote: 'Penggunaan pertama mengunduh konverter EPS di latar belakang (~15 MB, tersimpan setelah itu).',
 
     // Processing
@@ -157,7 +165,9 @@ export const STRINGS = {
       render_png:   'Merender ke PNG',
       render_jpg:   'Merender ke JPG',
       getting_ready: 'Sedang menyiapkan (hanya pertama kali)…',
-      load_eps:     'Membaca file EPS…',
+      load_eps:      'Membaca file EPS…',
+      load_svg:      'Membaca & memperbaiki SVG…',
+      render_output: 'Merender output…',
     },
 
     // Result screen

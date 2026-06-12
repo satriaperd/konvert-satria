@@ -3,6 +3,7 @@ import { convertFile as convertAVIF, warmup as warmupAVIF } from './avif.js'
 import { convertFile as convertBMP }                         from './bmp.js'
 import { convertFile as convertPDF }                         from './pdf.js'
 import { convertFile as convertEPS }                         from './eps.js'
+import { convertFile as convertSVG }                         from './svg.js'
 
 export const FORMAT_STEPS = {
   webp: [
@@ -37,6 +38,11 @@ export const FORMAT_STEPS = {
     { id: 'load_eps',      labelKey: 'load_eps',      label: 'Reading EPS file…'      },
     { id: 'render',        labelKey: 'render_svg',    label: 'Rendering to SVG'       },
   ],
+  // SVG input: fix viewBox then render/export
+  'svg-input': [
+    { id: 'load_svg', labelKey: 'load_svg',      label: 'Reading & fixing SVG…' },
+    { id: 'render',   labelKey: 'render_output', label: 'Rendering output…'     },
+  ],
 }
 
 export const FORMAT_META = {
@@ -49,6 +55,7 @@ export const FORMAT_META = {
 }
 
 export const PDF_OUTPUT_FORMATS = ['svg', 'png', 'jpg']
+export const SVG_OUTPUT_FORMATS = ['svg', 'png', 'jpg', 'webp']
 export const IMG_OUTPUT_FORMATS = ['webp', 'avif', 'bmp']
 
 export function warmup(format) {
@@ -60,7 +67,10 @@ export function convertFile(file, quality, isLossless, format, onStep) {
   const isEpsFile = /\.eps$/i.test(file.name) ||
     file.type === 'application/postscript' ||
     file.type === 'image/x-eps'
+  const isSvgFile = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)
+
   if (isEpsFile) return convertEPS(file, quality, isLossless, format, onStep)
+  if (isSvgFile) return convertSVG(file, quality, isLossless, format, onStep)
   if (format === 'webp') return convertWebP(file, quality, isLossless, onStep)
   if (format === 'avif') return convertAVIF(file, quality, isLossless, onStep)
   if (format === 'bmp')  return convertBMP(file,  quality, isLossless, onStep)

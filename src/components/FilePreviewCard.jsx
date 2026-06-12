@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { formatSize, fileTypeLabel, isPDF, isEPS } from '../utils/format'
+import { formatSize, fileTypeLabel, isPDF, isEPS, isSVG } from '../utils/format'
 
 const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
   const { id, file, previewUrl, w, h } = entry
@@ -7,7 +7,7 @@ const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
   return (
     <div className="preview-card">
       <div className="preview-card__thumb">
-        {(isPDF(file) || isEPS(file))
+        {(isPDF(file) || isEPS(file) || isSVG(file))
           ? <div className="preview-card__pdf-ph">{label}</div>
           : <img src={previewUrl} alt={file.name} loading="lazy" />
         }

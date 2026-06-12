@@ -16,18 +16,51 @@ function sanitizeSVG(raw) {
   return s
 }
 
-// Exported so eps.js can reuse the same SVG pipeline after GS converts EPS → PDF
-export async function renderToSVG(page) {
-  const viewport = page.getViewport({ scale: 1 })
-  const operatorList = await page.getOperatorList()
-  const svgGfx = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs)
-  svgGfx.embedFonts = false
-  const svgEl = await svgGfx.getSVG(operatorList, viewport)
-  const svg = sanitizeSVG(new XMLSerializer().serializeToString(svgEl))
+// Canvas fallback for pages that contain shading/gradient patterns.
+// pdf.js SVGGraphics doesn't support PDF shading IR types, so those pages
+// are rendered to canvas (which does support them) and embedded as a PNG
+// data-URL inside an SVG wrapper so the output file is still .svg.
+async function rasterAsSVG(page, viewport) {
+  const scale = 2
+  const vp    = page.getViewport({ scale })
+  const canvas = document.createElement('canvas')
+  canvas.width  = vp.width
+  canvas.height = vp.height
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise
+
+  const w = Math.round(viewport.width)
+  const h = Math.round(viewport.height)
+  const dataUrl = canvas.toDataURL('image/png')
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${dataUrl}" x="0" y="0" width="${w}" height="${h}"/></svg>`
   return {
     buffer: new TextEncoder().encode(svg).buffer,
-    w: Math.round(viewport.width),
-    h: Math.round(viewport.height),
+    w,
+    h,
+  }
+}
+
+// Exported so eps.js can reuse the same SVG pipeline after GS converts EPS → PDF
+export async function renderToSVG(page) {
+  const viewport     = page.getViewport({ scale: 1 })
+  const operatorList = await page.getOperatorList()
+
+  try {
+    const svgGfx = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs)
+    svgGfx.embedFonts = false
+    const svgEl = await svgGfx.getSVG(operatorList, viewport)
+    const svg   = sanitizeSVG(new XMLSerializer().serializeToString(svgEl))
+    return {
+      buffer: new TextEncoder().encode(svg).buffer,
+      w: Math.round(viewport.width),
+      h: Math.round(viewport.height),
+    }
+  } catch (err) {
+    // SVGGraphics throws "Unknown IR type: Shading" (and similar) for PDF
+    // pages that contain gradient fills or mesh shading patterns.
+    // Fall back to canvas rendering which fully supports those operations.
+    if (!String(err?.message).includes('Unknown IR type')) throw err
+    return rasterAsSVG(page, viewport)
   }
 }
 

@@ -78,25 +78,39 @@ export async function renderToSVG(page) {
     // "sh" shading operator detected — proceed to Pass 2
   }
 
-  // ── Pass 2: strip shadingFill ops → vector SVG without gradient fills ───
-  // OPS.shadingFill is the pdf.js internal code for the PDF "sh" operator.
-  // Hardcoded to 83 (stable across pdf.js v2–v4) with a live lookup fallback.
+  // ── Pass 2: strip shadingFill ops + patch instance → vector SVG ─────────
+  // OPS.shadingFill (83) = PDF "sh" operator. Stripped from the opList so
+  // SVGGraphics never encounters shading-fill commands.
+  // Also monkey-patch gfx2.shadingFill() to silently skip any shading that
+  // still arrives via pattern-space color (setFillColorN path), which
+  // stripping alone can't fully prevent.
   const shadingFillOp = pdfjsLib.OPS?.shadingFill ?? 83
   try {
     const filteredOpList = stripOps(operatorList, shadingFillOp)
     const gfx2 = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs)
     gfx2.embedFonts = false
+    if (typeof gfx2.shadingFill === 'function') {
+      const origShadingFill = gfx2.shadingFill.bind(gfx2)
+      gfx2.shadingFill = (...args) => { try { return origShadingFill(...args) } catch {} }
+    }
     return svgElementToResult(await gfx2.getSVG(filteredOpList, viewport), viewport)
   } catch {
-    // Shading referenced via setFillColorN (pattern-space), not "sh" directly.
-    // Filtering "sh" wasn't enough — fall through to raster.
+    // SVGGraphics failed entirely — fall through to raster.
   }
 
-  // ── Pass 3: canvas raster (complete visual but not vector) ───────────────
+  // ── Pass 3: raster fallback, always wrapped in SVG so output is valid XML ─
+  // Raw PNG bytes must NEVER be returned here — the caller expects SVG text and
+  // the download filename will be .svg. Wrapping ensures Chrome/Figma can open it.
+  const w = Math.round(viewport.width)
+  const h = Math.round(viewport.height)
   const { canvas } = await renderToCanvas(page, 2)
-  const blob   = await new Promise(r => canvas.toBlob(r, 'image/png'))
-  const buffer = await blob.arrayBuffer()
-  return { buffer, w: Math.round(viewport.width), h: Math.round(viewport.height) }
+  const dataUrl = canvas.toDataURL('image/png')
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`,
+    `<image href="${dataUrl}" x="0" y="0" width="${w}" height="${h}"/>`,
+    `</svg>`,
+  ].join('')
+  return { buffer: new TextEncoder().encode(svg).buffer, w, h }
 }
 
 async function renderToRaster(page, mime, quality) {
@@ -135,7 +149,7 @@ export async function convertFromData(pdfData, quality, format, onStep) {
   return { ...result, resized: false }
 }
 
-export async function convertFile(file, quality, isLossless, format, onStep) {
+export async function convertFile(file, quality, _isLossless, format, onStep) {
   onStep('load_pdf', 'active')
   const data = await file.arrayBuffer()
   onStep('load_pdf', 'done')

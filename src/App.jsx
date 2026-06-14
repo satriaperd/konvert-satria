@@ -8,7 +8,7 @@ import FilePreviewCard from './components/FilePreviewCard'
 import ProcessingScreen from './components/ProcessingScreen'
 import ResultScreen from './components/ResultScreen'
 import { convertFile, warmup, FORMAT_STEPS, FORMAT_META, PDF_OUTPUT_FORMATS, SVG_OUTPUT_FORMATS } from './encoders/index.js'
-import { isSupported, isPDF, isEPS, isSVG, uid, formatSize } from './utils/format'
+import { isSupported, isPDF, isEPS, isSVG, uid, formatSize, classifyError } from './utils/format'
 import { STRINGS } from './i18n.js'
 
 function makeStatuses(files, format) {
@@ -152,11 +152,13 @@ export default function App() {
           prev.map(s => s.id === entry.id ? { ...s, status: 'done' } : s)
         )
       } catch (err) {
+        const { human, detail } = classifyError(err)
         setFileStatuses(prev =>
           prev.map(s => s.id !== entry.id ? s : {
             ...s,
             status: 'error',
-            error: err.message || 'Conversion failed',
+            error: human,
+            errorDetail: detail,
             steps: s.steps.map(step =>
               step.status === 'active' ? { ...step, status: 'error' } : step
             ),

@@ -21,10 +21,27 @@ export function savingsLabel(pct) {
   return `▲ ${Math.abs(pct)}% larger`
 }
 
-export function enlargedTip(convMode) {
-  if (convMode === 'lossless')
-    return 'Lossless WebP dari sumber JPEG memang lebih besar — coba mode Lossy.'
-  return 'WebP quality terlalu tinggi untuk sumber ini — coba turunkan di bawah 75%.'
+export function classifyError(err) {
+  const msg = String(err?.message || err || '')
+
+  if (/EPS conversion failed|exit \d/.test(msg))
+    return { human: 'The EPS file could not be parsed — it may be corrupt or use unsupported PostScript features.', detail: msg }
+  if (/Failed to load EPS converter/i.test(msg))
+    return { human: 'Could not load the EPS converter. Check your internet connection and try again.', detail: msg }
+  if (/AVIF encoding failed/i.test(msg))
+    return { human: 'AVIF encoding failed. Try a smaller image or switch to WebP.', detail: msg }
+  if (/Failed to render SVG|SVG has zero dimensions/i.test(msg))
+    return { human: 'The SVG could not be rendered — it may be corrupt or have an invalid structure.', detail: msg }
+  if (/Canvas export failed/i.test(msg))
+    return { human: 'Could not export the image — the file may be too large for this browser.', detail: msg }
+  if (/Unknown IR type/i.test(msg))
+    return { human: 'This PDF contains unsupported vector features. Try exporting as PNG or JPG instead.', detail: msg }
+  if (/Unknown format/i.test(msg))
+    return { human: 'This file format is not supported.', detail: msg }
+  if (/out of memory/i.test(msg))
+    return { human: 'Not enough memory to convert this file. Try a smaller image or close other browser tabs.', detail: msg }
+
+  return { human: 'Something went wrong during conversion.', detail: msg || 'No additional details available.' }
 }
 
 export function isPDF(file) {

@@ -307,9 +307,23 @@
   border: 1.5px solid var(--blitz-primary); border-top-color: transparent;
   animation: spin 0.7s linear infinite;
 }
-.step-error {
+.step-error { margin-top: var(--s-1); padding-left: 24px; }
+.step-error__msg {
   font-family: var(--font-mono); font-size: 10px; color: var(--status-err);
-  margin-top: var(--s-1); padding-left: 24px; line-height: var(--lh-base);
+  line-height: var(--lh-base); margin: 0;
+}
+.step-error__toggle {
+  all: unset; cursor: pointer; display: block; margin-top: var(--s-1);
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-soft); text-decoration: underline;
+}
+.step-error__toggle:hover { color: var(--ink-base); }
+.step-error__detail {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-mid);
+  margin: var(--s-1) 0 0; padding: var(--s-2) var(--s-3);
+  background: var(--bg-base); border: var(--bw) solid var(--hairline);
+  border-radius: var(--r-1); overflow-x: auto; white-space: pre-wrap;
+  word-break: break-all; line-height: var(--lh-base);
 }
 
 /* ── Result screen ─────────────────────────────────────── */

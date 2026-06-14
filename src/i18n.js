@@ -82,6 +82,10 @@ export const STRINGS = {
     before: 'Before',
     after: 'After',
 
+    // Error display
+    errorShowMore: 'Show details',
+    errorHide: 'Hide details',
+
     // Footer & donate modal
     feedback: 'Send Feedback',
     donate: '☕ Buy me a coffee',
@@ -176,6 +180,10 @@ export const STRINGS = {
     convertMore: '← Konversi Lagi',
     before: 'Sebelum',
     after: 'Sesudah',
+
+    // Error display
+    errorShowMore: 'Tampilkan detail',
+    errorHide: 'Sembunyikan detail',
 
     // Footer & donate modal
     feedback: 'Kirim Masukan',

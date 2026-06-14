@@ -19,19 +19,11 @@ function resizeDims(w, h) {
   return { w: Math.round(w * s), h: Math.round(h * s), resized: true }
 }
 
-/**
- * Convert a File to WebP. Calls onStep(id, status) at each stage so
- * the UI can drive a live checklist.
- * onStep ids: 'encoder' | 'decode' | 'encode'
- * status: 'active' | 'done' | 'error'
- */
 export async function convertFile(file, quality, isLossless, onStep) {
-  // 1 — init encoder (WASM)
   onStep('encoder', 'active')
   await warmup()
   onStep('encoder', 'done')
 
-  // 2 — decode + resize via browser API
   onStep('decode', 'active')
   const bitmap = await createImageBitmap(file)
   const { w, h, resized } = resizeDims(bitmap.width, bitmap.height)
@@ -46,7 +38,6 @@ export async function convertFile(file, quality, isLossless, onStep) {
   const imageData = ctx.getImageData(0, 0, w, h)
   onStep('decode', 'done')
 
-  // 3 — encode to WebP
   onStep('encode', 'active')
   const options = isLossless
     ? { lossless: 1, quality: 100, method: 0 }

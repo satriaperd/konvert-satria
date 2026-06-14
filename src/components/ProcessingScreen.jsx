@@ -1,8 +1,29 @@
+import { useState } from 'react'
+
 function StepIcon({ status }) {
   if (status === 'active') return <span className="step-spinner" aria-hidden="true" />
   if (status === 'done')   return '✓'
   if (status === 'error')  return '✕'
   return '○'
+}
+
+function ErrorDetail({ error, errorDetail, t }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="step-error">
+      <p className="step-error__msg">{error}</p>
+      {errorDetail && (
+        <button
+          className="step-error__toggle"
+          type="button"
+          onClick={() => setOpen(o => !o)}
+        >
+          {open ? t.errorHide : t.errorShowMore}
+        </button>
+      )}
+      {open && <pre className="step-error__detail">{errorDetail}</pre>}
+    </div>
+  )
 }
 
 export default function ProcessingScreen({ fileStatuses, onViewResults, t }) {
@@ -68,7 +89,7 @@ export default function ProcessingScreen({ fileStatuses, onViewResults, t }) {
                       </div>
                     ))}
                     {fs.error && (
-                      <p className="step-error">{fs.error}</p>
+                      <ErrorDetail error={fs.error} errorDetail={fs.errorDetail} t={t} />
                     )}
                   </div>
                 )}

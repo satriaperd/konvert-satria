@@ -1,7 +1,3 @@
-// SVG → PNG / JPG / WebP / fixed-SVG converter.
-// Fixes mismatched viewBox (common in PDF-exported SVGs from stock sites)
-// by inserting the SVG into the DOM and using getBBox() on the root content group.
-
 async function fixViewBox(svgText) {
   return new Promise((resolve) => {
     const div = document.createElement('div')

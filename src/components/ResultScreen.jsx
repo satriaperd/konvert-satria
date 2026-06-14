@@ -1,4 +1,4 @@
-import { formatSize, pctSaved, savingsClass, savingsLabel } from '../utils/format'
+import { formatSize, pctSaved, savingsClass, savingsLabel, isEPS, isPDF } from '../utils/format'
 import { FORMAT_META } from '../encoders/index.js'
 
 export default function ResultScreen({ results, onDownloadOne, onDownloadAll, onReset, t }) {
@@ -43,7 +43,13 @@ export default function ResultScreen({ results, onDownloadOne, onDownloadAll, on
                   <div className="preview-col">
                     <span className="preview-col__label">{t.before}</span>
                     <div className="preview-img-box">
-                      <img src={r.originalUrl} alt="Original" loading="lazy" />
+                      {isEPS(r.file)
+                        ? <img src="/icons/eps-file-icon.svg" alt="EPS"
+                               style={{ width: 48, height: 48, objectFit: 'contain', opacity: 0.65 }} />
+                        : isPDF(r.file)
+                        ? <span className="preview-card__pdf-ph">PDF</span>
+                        : <img src={r.originalUrl} alt="Original" loading="lazy" />
+                      }
                     </div>
                     <span className="preview-size">{formatSize(r.originalSize)}</span>
                   </div>

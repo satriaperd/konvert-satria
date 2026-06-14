@@ -18,9 +18,12 @@ export default function CursorRing() {
       wrap.style.transform = tx
       dot.style.transform  = tx
 
+      // Ring is always visible when on-page — size changes between 3 states
+      ring.classList.add('is-visible')
+
       const target = document.elementFromPoint(x, y)
 
-      // Walk up checking for interactive elements — ring pulses instead of showing hand cursor
+      // Clickable element → ring pulses at full size (replaces hand cursor)
       let clickable = false
       let node = target
       for (let i = 0; i < 8 && node && node !== document.body; i++) {
@@ -34,21 +37,21 @@ export default function CursorRing() {
       }
 
       if (clickable) {
-        ring.classList.add('is-visible')
+        ring.classList.remove('is-large')
         ring.classList.add('is-pulsing')
         return
       }
 
       ring.classList.remove('is-pulsing')
 
-      // Header and footer are chrome — always show ring without background check
-      const inChrome = !!(target?.closest('footer') || target?.closest('header'))
-      if (inChrome) {
-        ring.classList.add('is-visible')
+      // Header/footer chrome → small ring, skip background check
+      if (target?.closest('footer') || target?.closest('header')) {
+        ring.classList.remove('is-large')
         return
       }
 
-      // Content areas: hide ring when opaque background is detected
+      // Transparent (canvas background) → full-size ring (is-large)
+      // Opaque content (cards, panels) → small ring (is-visible only)
       let onContent = false
       node = target
       for (let i = 0; i < 6 && node && node !== document.body; i++) {
@@ -56,13 +59,14 @@ export default function CursorRing() {
         if (bg && bg !== 'rgba(0, 0, 0, 0)') { onContent = true; break }
         node = node.parentElement
       }
-      ring.classList.toggle('is-visible', !onContent)
+      ring.classList.toggle('is-large', !onContent)
     }
 
     const onLeave = () => {
       wrap.style.transform = 'translate(-300px, -300px)'
       dot.style.transform  = 'translate(-300px, -300px)'
       ring.classList.remove('is-visible')
+      ring.classList.remove('is-large')
       ring.classList.remove('is-pulsing')
     }
 

@@ -15,6 +15,7 @@ function lineColor() {
 export default function BackgroundCanvas() {
   const canvasRef = useRef(null)
   const mouseRef  = useRef({ x: -9999, y: -9999 })
+  const lerpRef   = useRef({ x: -9999, y: -9999 })  // smoothed mouse for distortion
   const rafRef    = useRef(null)
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function BackgroundCanvas() {
       ctx.lineWidth   = 0.75
       ctx.lineCap     = 'round'
 
-      const { x: mx, y: my } = mouseRef.current
+      const { x: mx, y: my } = lerpRef.current
       const cx = W / 2
       const cy = H / 2
 
@@ -130,7 +131,14 @@ export default function BackgroundCanvas() {
       drawFrame()
       window.addEventListener('resize', drawFrame)
     } else {
-      const loop = () => { rafRef.current = requestAnimationFrame(loop); drawFrame() }
+      const loop = () => {
+        // Lerp mouse → smooth trailing distortion, lines slide rather than snap
+        const lr = lerpRef.current, mr = mouseRef.current
+        lr.x += (mr.x - lr.x) * 0.1
+        lr.y += (mr.y - lr.y) * 0.1
+        rafRef.current = requestAnimationFrame(loop)
+        drawFrame()
+      }
       loop()
     }
 

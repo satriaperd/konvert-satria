@@ -43,19 +43,25 @@ input, textarea, select { cursor: auto !important; }
 .cursor-ring {
   width: 80px; height: 80px;
   border-radius: 50%;
-  background: var(--blitz-primary);
+  background: rgba(0, 0, 0, 0.10);  /* Dark transparent — default for all non-background states */
   transform: scale(0);
-  /* Disappear: quick */
-  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 1, 1);
+}
+[data-theme="dark"] .cursor-ring {
+  background: rgba(255, 255, 255, 0.10);
 }
 .cursor-ring.is-visible {
-  transform: scale(1);
-  /* Appear: 800ms smooth ease-out */
+  transform: scale(0.25);  /* Small ring on content areas (≈20px) */
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cursor-ring.is-visible.is-large {
+  transform: scale(1);               /* Full ring on background (80px) */
+  background: var(--blitz-primary);  /* Orange only on background hover */
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes ring-pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.28); }
+  0%, 100% { transform: scale(0.55); }  /* ≈44px — fits snugly around a button */
+  50%      { transform: scale(0.70); }  /* ≈56px peak */
 }
 .cursor-ring.is-visible.is-pulsing {
   animation: ring-pulse 1.4s ease-in-out infinite;

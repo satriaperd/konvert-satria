@@ -27,61 +27,65 @@ body::before {
   body::before { animation: none; }
 }
 
-/* ── Custom cursor ─────────────────────────────────────── */
-body { cursor: none; }
-/* Force all elements to use the custom cursor ring, not the browser pointer */
-* { cursor: none !important; }
-input, textarea, select { cursor: auto !important; }
+/* ── Custom cursor (desktop / hover-capable devices only) ── */
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+  * { cursor: none !important; }
+  input, textarea, select { cursor: auto !important; }
 
-.cursor-wrap {
-  position: fixed;
-  top: 0; left: 0;
-  width: 0; height: 0;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-300px, -300px);
+  .cursor-wrap {
+    position: fixed;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-300px, -300px);
+    will-change: transform;
+  }
+
+  .cursor-ring-dark {
+    position: absolute;
+    width: 28px; height: 28px;
+    top: -14px; left: -14px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.08);
+    border: 1.5px solid rgba(0, 0, 0, 0.35);
+    transform: scale(0);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-theme="dark"] .cursor-ring-dark {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  .cursor-ring-dark.is-visible  { transform: scale(1); }
+  .cursor-ring-dark.is-pulsing  { animation: ring-pulse 1.4s ease-in-out infinite; }
+
+  .cursor-ring-orange {
+    position: absolute;
+    width: 80px; height: 80px;
+    top: -40px; left: -40px;
+    border-radius: 50%;
+    background: var(--blitz-primary);
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1);
+  }
+  .cursor-ring-orange.is-visible {
+    transform: scale(1);
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
-/* Dark ring — primary cursor indicator, always visible while on-page */
-.cursor-ring-dark {
-  position: absolute;
-  width: 28px; height: 28px;
-  top: -14px; left: -14px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.08);
-  border: 1.5px solid rgba(0, 0, 0, 0.35);
-  transform: scale(0);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-[data-theme="dark"] .cursor-ring-dark {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.35);
-}
-.cursor-ring-dark.is-visible {
-  transform: scale(1);
-}
 @keyframes ring-pulse {
   0%, 100% { transform: scale(1); }
   50%       { transform: scale(1.4); }
 }
-.cursor-ring-dark.is-pulsing {
-  animation: ring-pulse 1.4s ease-in-out infinite;
-}
 
-/* Orange ring — background hover only, 0→1 in 1s, 1→0 in 0.5s */
-.cursor-ring-orange {
-  position: absolute;
-  width: 80px; height: 80px;
-  top: -40px; left: -40px;
-  border-radius: 50%;
-  background: var(--blitz-primary);
-  transform: scale(0);
-  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1);
-}
-.cursor-ring-orange.is-visible {
-  transform: scale(1);
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+/* Disable cursor ring transitions for reduced-motion users */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .cursor-ring-dark,
+  .cursor-ring-orange { transition: none; }
+  .cursor-ring-dark.is-pulsing { animation: none; transform: scale(1); }
 }
 
 /* ── Content layer (above background canvas) ───────────── */
@@ -628,22 +632,25 @@ input, textarea, select { cursor: auto !important; }
 .brand__mark {
   transition: transform var(--dur-2) var(--ease);
 }
-.brand:hover .brand__mark {
-  transform: rotate(-6deg) scale(1.07);
-}
 
-/* ── Button lifts ──────────────────────────────────────── */
-.btn:not(:disabled):hover:not(:active) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+/* ── Hover lifts — desktop only (no accidental trigger on tap) ── */
+@media (hover: hover) {
+  .brand:hover .brand__mark {
+    transform: rotate(-6deg) scale(1.07);
+  }
+
+  .btn:not(:disabled):hover:not(:active) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
+  [data-theme="dark"] .btn:not(:disabled):hover:not(:active) {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  }
+  .donate-btn:hover   { transform: translateY(-1px); }
+  .feedback-btn:hover { transform: translateY(-1px); }
+  .lang-btn:hover     { transform: translateY(-1px); }
+  .theme-btn:hover    { transform: translateY(-1px); }
 }
-[data-theme="dark"] .btn:not(:disabled):hover:not(:active) {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-}
-.donate-btn:hover   { transform: translateY(-1px); }
-.feedback-btn:hover { transform: translateY(-1px); }
-.lang-btn:hover     { transform: translateY(-1px); }
-.theme-btn:hover    { transform: translateY(-1px); }
 
 /* ── Drop zone icon float ──────────────────────────────── */
 .dz-icon {

@@ -1,32 +1,43 @@
 import { useEffect, useRef } from 'react'
 
-const RADIUS   = 160  // mouse influence radius in px (2× the 80px cursor ring)
-const MAX_PUSH = 30   // max vertex displacement in px
-const MAX_LIFT = 10   // max perpendicular line spread in px (creates "lifted" spacing)
-const SPACING  = 16   // perpendicular distance between diagonal lines
-const SEGMENT  = 10   // subdivision length within distortion zone
+const RADIUS   = 160
+const MAX_PUSH = 30
+const MAX_LIFT = 10
+const SPACING  = 16
+const SEGMENT  = 10
 
-function lineColor() {
+function readLineColor() {
   return document.documentElement.getAttribute('data-theme') === 'dark'
     ? 'rgba(255, 179, 0, 0.40)'
     : 'rgba(255, 179, 0, 0.60)'
 }
 
+function checkBackground(x, y) {
+  const el = document.elementFromPoint(x, y)
+  if (!el || el.closest('footer') || el.closest('header')) return false
+  let node = el
+  for (let i = 0; i < 6 && node && node !== document.body; i++) {
+    const bg = getComputedStyle(node).backgroundColor
+    if (bg && bg !== 'rgba(0, 0, 0, 0)') return false
+    node = node.parentElement
+  }
+  return true
+}
+
 export default function BackgroundCanvas() {
-  const canvasRef  = useRef(null)
-  const mouseRef   = useRef({ x: -9999, y: -9999 })
-  const targetRef  = useRef({ x: -9999, y: -9999 })  // lerp target: real pos or -9999 when off-bg
-  const lerpRef    = useRef({ x: -9999, y: -9999 })  // smoothed distortion position
-  const rafRef     = useRef(null)
+  const canvasRef = useRef(null)
+  const targetRef = useRef({ x: -9999, y: -9999 })
+  const lerpRef   = useRef({ x: -9999, y: -9999 })
+  const rafRef    = useRef(null)
+  const colorRef  = useRef(readLineColor())
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
-    // \ direction unit vector and its perpendicular
-    const DX = 0.707107, DY = 0.707107    // line direction (top-left → bottom-right)
-    const PX = -0.707107, PY = 0.707107   // perpendicular offset direction
+    const DX = 0.707107, DY = 0.707107
+    const PX = -0.707107, PY = 0.707107
 
     let W, H, diagonal, numLines, lineLength
 
@@ -39,70 +50,59 @@ export default function BackgroundCanvas() {
     }
     resize()
 
-    // Returns true only when cursor is over a transparent (canvas-background) area.
-    // Matches same logic as CursorRing so distortion and orange ring stay in sync.
-    const checkBackground = (x, y) => {
-      const el = document.elementFromPoint(x, y)
-      if (!el || el.closest('footer') || el.closest('header')) return false
-      let node = el
-      for (let i = 0; i < 6 && node && node !== document.body; i++) {
-        const bg = getComputedStyle(node).backgroundColor
-        if (bg && bg !== 'rgba(0, 0, 0, 0)') return false
-        node = node.parentElement
-      }
-      return true
-    }
-
-    const onMouseMove = (e) => {
-      const { clientX: x, clientY: y } = e
-      mouseRef.current  = { x, y }
-      // When over content/chrome the lerp target snaps to -9999 → distortion fades out smoothly
-      targetRef.current = checkBackground(x, y) ? { x, y } : { x: -9999, y: -9999 }
-    }
-    const onMouseLeave = () => {
-      mouseRef.current  = { x: -9999, y: -9999 }
-      targetRef.current = { x: -9999, y: -9999 }
-    }
-
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseleave', onMouseLeave)
-    window.addEventListener('resize', resize)
+    // Cache line color — update only when theme attribute changes
+    const mo = new MutationObserver(() => { colorRef.current = readLineColor() })
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const drawFrame = () => {
       ctx.clearRect(0, 0, W, H)
-      ctx.strokeStyle = lineColor()
+      ctx.strokeStyle = colorRef.current
       ctx.lineWidth   = 0.75
       ctx.lineCap     = 'round'
 
       const { x: mx, y: my } = lerpRef.current
-      const cx = W / 2
-      const cy = H / 2
+      const cx = W / 2, cy = H / 2
+      const noMouse = mx < -500
 
+      // Pass 1 — undistorted lines batched into a single stroke() call
+      ctx.beginPath()
       for (let i = -numLines; i <= numLines; i++) {
-        // Original line center, offset perpendicular from viewport center
-        let lcx = cx + i * SPACING * PX
-        let lcy = cy + i * SPACING * PY
-
+        const lcx = cx + i * SPACING * PX
+        const lcy = cy + i * SPACING * PY
         const sx0 = lcx - DX * lineLength / 2
         const sy0 = lcy - DY * lineLength / 2
 
-        // Project mouse onto line to find closest point (using original position)
+        let straight = true
+        if (!noMouse) {
+          const proj = (mx - sx0) * DX + (my - sy0) * DY
+          const cp   = Math.max(0, Math.min(lineLength, proj))
+          const dist = Math.hypot(sx0 + DX * cp - mx, sy0 + DY * cp - my)
+          straight = dist >= RADIUS
+        }
+        if (straight) {
+          ctx.moveTo(sx0, sy0)
+          ctx.lineTo(sx0 + DX * lineLength, sy0 + DY * lineLength)
+        }
+      }
+      ctx.stroke()
+
+      if (noMouse) return
+
+      // Pass 2 — distorted lines only (within RADIUS), each stroked individually
+      for (let i = -numLines; i <= numLines; i++) {
+        let lcx = cx + i * SPACING * PX
+        let lcy = cy + i * SPACING * PY
+        const sx0 = lcx - DX * lineLength / 2
+        const sy0 = lcy - DY * lineLength / 2
+
         const proj        = (mx - sx0) * DX + (my - sy0) * DY
         const clampedProj = Math.max(0, Math.min(lineLength, proj))
         const closestX    = sx0 + DX * clampedProj
         const closestY    = sy0 + DY * clampedProj
         const closestDist = Math.hypot(closestX - mx, closestY - my)
 
-        if (closestDist >= RADIUS || mx < -500) {
-          ctx.beginPath()
-          ctx.moveTo(sx0, sy0)
-          ctx.lineTo(sx0 + DX * lineLength, sy0 + DY * lineLength)
-          ctx.stroke()
-          continue
-        }
+        if (closestDist >= RADIUS) continue
 
-        // Lift: push each line away from the mouse perpendicularly.
-        // Lines spread apart, making spacing appear wider near the cursor.
         const perpDist = (mx - lcx) * PX + (my - lcy) * PY
         const liftMag  = (1 - closestDist / RADIUS) ** 2 * MAX_LIFT
         lcx -= Math.sign(perpDist) * liftMag * PX
@@ -113,19 +113,15 @@ export default function BackgroundCanvas() {
         const ex = lcx + DX * lineLength / 2
         const ey = lcy + DY * lineLength / 2
 
-        // Compute t-range within the influence circle for vertex distortion
         const halfChord = Math.sqrt(Math.max(0, RADIUS * RADIUS - closestDist * closestDist))
         const tCenter   = clampedProj / lineLength
         const tHalf     = halfChord / lineLength
         const t0        = Math.max(0, tCenter - tHalf)
         const t1        = Math.min(1, tCenter + tHalf)
 
-        const p0x = sx + t0 * lineLength * DX
-        const p0y = sy + t0 * lineLength * DY
-
         ctx.beginPath()
         ctx.moveTo(sx, sy)
-        ctx.lineTo(p0x, p0y)
+        ctx.lineTo(sx + t0 * lineLength * DX, sy + t0 * lineLength * DY)
 
         const segCount = Math.max(6, Math.ceil((t1 - t0) * lineLength / SEGMENT))
         for (let j = 1; j <= segCount; j++) {
@@ -151,28 +147,61 @@ export default function BackgroundCanvas() {
     const isTouch      = window.matchMedia('(pointer: coarse)').matches
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+    // Touch / reduced-motion: draw once, redraw only on resize — no RAF loop
     if (isTouch || reduceMotion) {
       drawFrame()
-      window.addEventListener('resize', drawFrame)
-    } else {
-      const loop = () => {
-        // Lerp toward targetRef (not raw mouse) — target is -9999 when off-background,
-        // so distortion fades out smoothly when cursor leaves the canvas area
-        const lr = lerpRef.current, tr = targetRef.current
-        lr.x += (tr.x - lr.x) * 0.1
-        lr.y += (tr.y - lr.y) * 0.1
-        rafRef.current = requestAnimationFrame(loop)
-        drawFrame()
+      const onResize = () => { resize(); drawFrame() }
+      window.addEventListener('resize', onResize)
+      return () => {
+        window.removeEventListener('resize', onResize)
+        mo.disconnect()
       }
-      loop()
     }
+
+    // Desktop: full interactive RAF loop
+    const onMouseMove = (e) => {
+      const { clientX: x, clientY: y } = e
+      targetRef.current = checkBackground(x, y) ? { x, y } : { x: -9999, y: -9999 }
+    }
+    const onMouseLeave = () => {
+      targetRef.current = { x: -9999, y: -9999 }
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseleave', onMouseLeave)
+    window.addEventListener('resize', resize)
+
+    let running = false
+    const loop = () => {
+      const lr = lerpRef.current, tr = targetRef.current
+      lr.x += (tr.x - lr.x) * 0.1
+      lr.y += (tr.y - lr.y) * 0.1
+      rafRef.current = requestAnimationFrame(loop)
+      drawFrame()
+    }
+
+    // Pause loop when tab is hidden — resume on visibility restore
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafRef.current)
+        running = false
+      } else if (!running) {
+        running = true
+        loop()
+      }
+    }
+
+    running = true
+    loop()
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
       cancelAnimationFrame(rafRef.current)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('resize', resize)
-      if (isTouch || reduceMotion) window.removeEventListener('resize', drawFrame)
+      mo.disconnect()
     }
   }, [])
 

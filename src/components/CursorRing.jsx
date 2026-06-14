@@ -1,29 +1,27 @@
 import { useEffect, useRef } from 'react'
 
 export default function CursorRing() {
-  const wrapRef = useRef(null)  // follows cursor instantly (no transition)
-  const ringRef = useRef(null)  // scale transition only
-  const dotRef  = useRef(null)  // follows cursor instantly
+  const wrapRef       = useRef(null)  // instant position — no transition
+  const darkRingRef   = useRef(null)  // always-on cursor indicator (dark transparent)
+  const orangeRingRef = useRef(null)  // background-only ring (orange, scale 0↔1)
 
   useEffect(() => {
     if (window.matchMedia('(pointer: coarse)').matches) return
 
-    const wrap = wrapRef.current
-    const ring = ringRef.current
-    const dot  = dotRef.current
-    if (!wrap || !ring || !dot) return
+    const wrap   = wrapRef.current
+    const dark   = darkRingRef.current
+    const orange = orangeRingRef.current
+    if (!wrap || !dark || !orange) return
 
     const onMove = ({ clientX: x, clientY: y }) => {
-      const tx = `translate(${x}px, ${y}px)`
-      wrap.style.transform = tx
-      dot.style.transform  = tx
+      wrap.style.transform = `translate(${x}px, ${y}px)`
 
-      // Ring is always visible when on-page — size changes between 3 states
-      ring.classList.add('is-visible')
+      // Dark ring always follows and is always visible while on-page
+      dark.classList.add('is-visible')
 
       const target = document.elementFromPoint(x, y)
 
-      // Clickable element → ring pulses at full size (replaces hand cursor)
+      // Check for clickable element → dark ring pulses
       let clickable = false
       let node = target
       for (let i = 0; i < 8 && node && node !== document.body; i++) {
@@ -35,23 +33,14 @@ export default function CursorRing() {
         ) { clickable = true; break }
         node = node.parentElement
       }
+      dark.classList.toggle('is-pulsing', clickable)
 
-      if (clickable) {
-        ring.classList.remove('is-large')
-        ring.classList.add('is-pulsing')
-        return
-      }
-
-      ring.classList.remove('is-pulsing')
-
-      // Header/footer chrome → small ring, skip background check
+      // Orange ring only on transparent background (canvas areas), not chrome or content
       if (target?.closest('footer') || target?.closest('header')) {
-        ring.classList.remove('is-large')
+        orange.classList.remove('is-visible')
         return
       }
 
-      // Transparent (canvas background) → full-size ring (is-large)
-      // Opaque content (cards, panels) → small ring (is-visible only)
       let onContent = false
       node = target
       for (let i = 0; i < 6 && node && node !== document.body; i++) {
@@ -59,15 +48,14 @@ export default function CursorRing() {
         if (bg && bg !== 'rgba(0, 0, 0, 0)') { onContent = true; break }
         node = node.parentElement
       }
-      ring.classList.toggle('is-large', !onContent)
+      orange.classList.toggle('is-visible', !onContent)
     }
 
     const onLeave = () => {
       wrap.style.transform = 'translate(-300px, -300px)'
-      dot.style.transform  = 'translate(-300px, -300px)'
-      ring.classList.remove('is-visible')
-      ring.classList.remove('is-large')
-      ring.classList.remove('is-pulsing')
+      dark.classList.remove('is-visible')
+      dark.classList.remove('is-pulsing')
+      orange.classList.remove('is-visible')
     }
 
     window.addEventListener('mousemove', onMove)
@@ -79,11 +67,9 @@ export default function CursorRing() {
   }, [])
 
   return (
-    <>
-      <div ref={wrapRef} className="cursor-ring-wrap" aria-hidden="true">
-        <div ref={ringRef} className="cursor-ring" />
-      </div>
-      <div ref={dotRef} className="cursor-dot" aria-hidden="true" />
-    </>
+    <div ref={wrapRef} className="cursor-wrap" aria-hidden="true">
+      <div ref={darkRingRef}   className="cursor-ring-dark" />
+      <div ref={orangeRingRef} className="cursor-ring-orange" />
+    </div>
   )
 }

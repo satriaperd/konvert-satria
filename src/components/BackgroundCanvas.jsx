@@ -13,10 +13,11 @@ function lineColor() {
 }
 
 export default function BackgroundCanvas() {
-  const canvasRef = useRef(null)
-  const mouseRef  = useRef({ x: -9999, y: -9999 })
-  const lerpRef   = useRef({ x: -9999, y: -9999 })  // smoothed mouse for distortion
-  const rafRef    = useRef(null)
+  const canvasRef  = useRef(null)
+  const mouseRef   = useRef({ x: -9999, y: -9999 })
+  const targetRef  = useRef({ x: -9999, y: -9999 })  // lerp target: real pos or -9999 when off-bg
+  const lerpRef    = useRef({ x: -9999, y: -9999 })  // smoothed distortion position
+  const rafRef     = useRef(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -38,8 +39,31 @@ export default function BackgroundCanvas() {
     }
     resize()
 
-    const onMouseMove  = (e) => { mouseRef.current = { x: e.clientX, y: e.clientY } }
-    const onMouseLeave = ()  => { mouseRef.current = { x: -9999, y: -9999 } }
+    // Returns true only when cursor is over a transparent (canvas-background) area.
+    // Matches same logic as CursorRing so distortion and orange ring stay in sync.
+    const checkBackground = (x, y) => {
+      const el = document.elementFromPoint(x, y)
+      if (!el || el.closest('footer') || el.closest('header')) return false
+      let node = el
+      for (let i = 0; i < 6 && node && node !== document.body; i++) {
+        const bg = getComputedStyle(node).backgroundColor
+        if (bg && bg !== 'rgba(0, 0, 0, 0)') return false
+        node = node.parentElement
+      }
+      return true
+    }
+
+    const onMouseMove = (e) => {
+      const { clientX: x, clientY: y } = e
+      mouseRef.current  = { x, y }
+      // When over content/chrome the lerp target snaps to -9999 → distortion fades out smoothly
+      targetRef.current = checkBackground(x, y) ? { x, y } : { x: -9999, y: -9999 }
+    }
+    const onMouseLeave = () => {
+      mouseRef.current  = { x: -9999, y: -9999 }
+      targetRef.current = { x: -9999, y: -9999 }
+    }
+
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseleave', onMouseLeave)
     window.addEventListener('resize', resize)
@@ -132,10 +156,11 @@ export default function BackgroundCanvas() {
       window.addEventListener('resize', drawFrame)
     } else {
       const loop = () => {
-        // Lerp mouse → smooth trailing distortion, lines slide rather than snap
-        const lr = lerpRef.current, mr = mouseRef.current
-        lr.x += (mr.x - lr.x) * 0.1
-        lr.y += (mr.y - lr.y) * 0.1
+        // Lerp toward targetRef (not raw mouse) — target is -9999 when off-background,
+        // so distortion fades out smoothly when cursor leaves the canvas area
+        const lr = lerpRef.current, tr = targetRef.current
+        lr.x += (tr.x - lr.x) * 0.1
+        lr.y += (tr.y - lr.y) * 0.1
         rafRef.current = requestAnimationFrame(loop)
         drawFrame()
       }

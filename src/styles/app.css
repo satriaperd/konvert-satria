@@ -33,49 +33,55 @@ body { cursor: none; }
 * { cursor: none !important; }
 input, textarea, select { cursor: auto !important; }
 
-.cursor-ring-wrap {
+.cursor-wrap {
   position: fixed;
-  top: -40px; left: -40px;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  overflow: visible;
   pointer-events: none;
   z-index: 9998;
   transform: translate(-300px, -300px);
 }
-.cursor-ring {
-  width: 80px; height: 80px;
+
+/* Dark ring — primary cursor indicator, always visible while on-page */
+.cursor-ring-dark {
+  position: absolute;
+  width: 28px; height: 28px;
+  top: -14px; left: -14px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.10);  /* Dark transparent — default for all non-background states */
+  background: rgba(0, 0, 0, 0.08);
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
   transform: scale(0);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 1, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-[data-theme="dark"] .cursor-ring {
-  background: rgba(255, 255, 255, 0.10);
+[data-theme="dark"] .cursor-ring-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
 }
-.cursor-ring.is-visible {
-  transform: scale(0.25);  /* Small ring on content areas (≈20px) */
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.cursor-ring.is-visible.is-large {
-  transform: scale(1);               /* Full ring on background (80px) */
-  background: var(--blitz-primary);  /* Orange only on background hover */
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+.cursor-ring-dark.is-visible {
+  transform: scale(1);
 }
 @keyframes ring-pulse {
-  0%, 100% { transform: scale(0.55); }  /* ≈44px — fits snugly around a button */
-  50%      { transform: scale(0.70); }  /* ≈56px peak */
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.4); }
 }
-.cursor-ring.is-visible.is-pulsing {
+.cursor-ring-dark.is-pulsing {
   animation: ring-pulse 1.4s ease-in-out infinite;
-  transition: none;
 }
-.cursor-dot {
-  position: fixed;
-  top: -8px; left: -8px;
-  width: 16px; height: 16px;
+
+/* Orange ring — background hover only, 0→1 in 1s, 1→0 in 0.5s */
+.cursor-ring-orange {
+  position: absolute;
+  width: 80px; height: 80px;
+  top: -40px; left: -40px;
   border-radius: 50%;
   background: var(--blitz-primary);
-  pointer-events: none;
-  z-index: 10000;
-  transform: translate(-300px, -300px);
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1);
+}
+.cursor-ring-orange.is-visible {
+  transform: scale(1);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Content layer (above background canvas) ───────────── */

@@ -1,19 +1,12 @@
-import { memo, useRef, useEffect } from 'react'
-import gsap from 'gsap'
+import { memo } from 'react'
 import { formatSize, fileTypeLabel, isPDF, isEPS, isSVG } from '../utils/format'
 
 const FilePreviewCard = memo(function FilePreviewCard({ entry, onRemove }) {
   const { id, file, previewUrl, w, h } = entry
   const label = fileTypeLabel(file)
-  const cardRef = useRef(null)
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    gsap.from(cardRef.current, { opacity: 0, y: 10, duration: 0.3, ease: 'power2.out' })
-  }, [])
 
   return (
-    <div ref={cardRef} className="preview-card">
+    <div className="preview-card">
       <div className="preview-card__thumb">
         {(isPDF(file) || isEPS(file) || isSVG(file))
           ? <div className="preview-card__pdf-ph">{label}</div>

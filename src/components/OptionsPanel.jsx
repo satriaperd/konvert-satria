@@ -98,6 +98,9 @@ export default function OptionsPanel({ mode, quality, outputFormat, onMode, onQu
       {isEpsMode && (
         <div className="format-note">{t.epsNote}</div>
       )}
+      {isEpsMode && (
+        <div className="format-note">{t.epsAttribNote}</div>
+      )}
       {isSvgMode && (
         <div className="format-note">{t.svgInputNote}</div>
       )}

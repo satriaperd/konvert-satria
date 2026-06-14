@@ -44,6 +44,7 @@ export const STRINGS = {
     convertOneSvg: 'Fix & convert 1 SVG →',
     convertManySvg: (n) => `Fix & convert all ${n} SVGs →`,
     epsNote: 'First use downloads the EPS converter in the background (~15 MB, cached after that).',
+    epsAttribNote: 'If this EPS file is from a third-party source (stock site, design platform, etc.), please respect their terms & conditions — including crediting the original creator where required.',
 
     // Processing
     processingTitle: 'Converting images…',
@@ -143,6 +144,7 @@ export const STRINGS = {
     convertOneSvg: 'Perbaiki & konversi 1 SVG →',
     convertManySvg: (n) => `Perbaiki & konversi semua ${n} SVG →`,
     epsNote: 'Penggunaan pertama mengunduh konverter EPS di latar belakang (~15 MB, tersimpan setelah itu).',
+    epsAttribNote: 'Jika file EPS ini berasal dari pihak ketiga (situs stok, platform desain, dll.), harap patuhi syarat & ketentuan mereka — termasuk mencantumkan kredit kepada pembuat asli jika diperlukan.',
 
     // Processing
     processingTitle: 'Mengonversi gambar…',

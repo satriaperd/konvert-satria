@@ -80,18 +80,26 @@ export async function renderToSVG(page) {
 
   // ── Pass 2: strip shadingFill ops + patch instance → vector SVG ─────────
   // OPS.shadingFill (83) = PDF "sh" operator. Stripped from the opList so
-  // SVGGraphics never encounters shading-fill commands.
-  // Also monkey-patch gfx2.shadingFill() to silently skip any shading that
-  // still arrives via pattern-space color (setFillColorN path), which
-  // stripping alone can't fully prevent.
+  // SVGGraphics never encounters direct shading-fill commands.
+  //
+  // Shading can also arrive via pattern color space (setFillColorN/
+  // setStrokeColorN, opcodes 33/34) — those can't be stripped because they
+  // carry non-shading colors too. Instead, patch all three methods so any
+  // "Unknown IR type" error is silently swallowed: the element gets no
+  // fill/stroke (transparent gap) but all paths/text/solid fills stay vector.
   const shadingFillOp = pdfjsLib.OPS?.shadingFill ?? 83
   try {
     const filteredOpList = stripOps(operatorList, shadingFillOp)
     const gfx2 = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs)
     gfx2.embedFonts = false
-    if (typeof gfx2.shadingFill === 'function') {
-      const origShadingFill = gfx2.shadingFill.bind(gfx2)
-      gfx2.shadingFill = (...args) => { try { return origShadingFill(...args) } catch {} }
+    const silenceUnknownIR = (fn) => (...args) => {
+      try { return fn(...args) }
+      catch (e) { if (!String(e?.message).includes('Unknown IR type')) throw e }
+    }
+    for (const method of ['shadingFill', 'setFillColorN', 'setStrokeColorN']) {
+      if (typeof gfx2[method] === 'function') {
+        gfx2[method] = silenceUnknownIR(gfx2[method].bind(gfx2))
+      }
     }
     return svgElementToResult(await gfx2.getSVG(filteredOpList, viewport), viewport)
   } catch {

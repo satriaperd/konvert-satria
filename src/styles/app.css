@@ -31,23 +31,30 @@ body::before {
 body { cursor: none; }
 input, textarea, select { cursor: auto; }
 
-.cursor-ring {
+.cursor-ring-wrap {
   position: fixed;
   top: -40px; left: -40px;
-  width: 80px; height: 80px;
-  border-radius: 50%;
-  border: 1.5px solid var(--blitz-primary);
-  background: rgba(255, 179, 0, 0.07);
   pointer-events: none;
   z-index: 9998;
-  opacity: 0;
-  transition: opacity 0.15s ease;
   transform: translate(-300px, -300px);
+}
+.cursor-ring {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--blitz-primary);
+  transform: scale(0);
+  /* Disappear: quick */
+  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1);
+}
+.cursor-ring.is-visible {
+  transform: scale(1);
+  /* Appear: 800ms smooth ease-out */
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cursor-dot {
   position: fixed;
-  top: -4px; left: -4px;
-  width: 8px; height: 8px;
+  top: -8px; left: -8px;
+  width: 16px; height: 16px;
   border-radius: 50%;
   background: var(--blitz-primary);
   pointer-events: none;

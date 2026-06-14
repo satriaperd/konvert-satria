@@ -2,14 +2,13 @@ import { useEffect, useRef } from 'react'
 
 const RADIUS   = 120  // mouse influence radius in px
 const MAX_PUSH = 30   // max vertex displacement in px
-const SPACING  = 30   // perpendicular distance between diagonal lines
+const SPACING  = 16   // perpendicular distance between diagonal lines
 const SEGMENT  = 10   // subdivision length within distortion zone
 
-// Amber from BlitzUI — visible but not dominant on either theme
 function lineColor() {
   return document.documentElement.getAttribute('data-theme') === 'dark'
-    ? 'rgba(255, 179, 0, 0.13)'
-    : 'rgba(255, 179, 0, 0.20)'
+    ? 'rgba(255, 179, 0, 0.40)'
+    : 'rgba(255, 179, 0, 0.60)'
 }
 
 export default function BackgroundCanvas() {

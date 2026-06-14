@@ -136,6 +136,7 @@ input:focus-visible,
               border-color var(--dur-1) var(--ease),
               transform var(--dur-1) var(--ease);
   user-select: none; white-space: nowrap;
+  will-change: transform;
 }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }

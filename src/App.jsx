@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import gsap from 'gsap'
 import JSZip from 'jszip'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import BackgroundCanvas from './components/BackgroundCanvas'
+import CursorRing from './components/CursorRing'
 import DropZone from './components/DropZone'
 import OptionsPanel from './components/OptionsPanel'
 import FilePreviewCard from './components/FilePreviewCard'
@@ -10,6 +13,39 @@ import ResultScreen from './components/ResultScreen'
 import { convertFile, warmup, FORMAT_STEPS, FORMAT_META, PDF_OUTPUT_FORMATS, SVG_OUTPUT_FORMATS } from './encoders/index.js'
 import { isSupported, isPDF, isEPS, isSVG, uid, formatSize, classifyError } from './utils/format'
 import { STRINGS } from './i18n.js'
+
+function MagneticBtn({ children, className, onClick }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(pointer: coarse)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const onMove = (e) => {
+      const rect = el.getBoundingClientRect()
+      const x = (e.clientX - rect.left - rect.width / 2) * 0.25
+      const y = (e.clientY - rect.top - rect.height / 2) * 0.25
+      gsap.to(el, { x, y, duration: 0.3, ease: 'power2.out' })
+    }
+    const onLeave = () => gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' })
+
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+      gsap.killTweensOf(el)
+    }
+  }, [])
+
+  return (
+    <button ref={ref} className={className} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
 
 function makeStatuses(files, format) {
   return files.map(f => {
@@ -212,6 +248,9 @@ export default function App() {
   // ── Render ───────────────────────────────────────────────
   return (
     <>
+      <BackgroundCanvas />
+      <CursorRing />
+      <div className="app-content">
       <Header onToggleTheme={toggleTheme} onToggleLang={toggleLang} t={t} />
 
       {screen === 'upload' && (
@@ -245,7 +284,7 @@ export default function App() {
               </section>
 
               <div className="convert-action">
-                <button className="btn btn--primary btn--lg" onClick={convertAll}>
+                <MagneticBtn className="btn btn--primary btn--lg" onClick={convertAll}>
                   {hasEps
                     ? (files.length === 1 ? t.convertOneEps : t.convertManyEps(files.length))
                     : hasPdf
@@ -254,7 +293,7 @@ export default function App() {
                       ? (files.length === 1 ? t.convertOneSvg  : t.convertManySvg(files.length))
                       : (files.length === 1 ? t.convertOne     : t.convertMany(files.length))
                   }
-                </button>
+                </MagneticBtn>
               </div>
             </>
           )}
@@ -284,6 +323,7 @@ export default function App() {
       )}
 
       <Footer t={t} />
+      </div>
     </>
   )
 }

@@ -3,6 +3,61 @@
    Mobile-first layout and component styles
 ============================================================ */
 
+/* ── Grain overlay ─────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 150px 150px;
+  animation: grain 0.4s steps(1) infinite;
+}
+@keyframes grain {
+  0%   { background-position:   0px   0px; }
+  20%  { background-position: -28px -14px; }
+  40%  { background-position:  18px -36px; }
+  60%  { background-position: -36px  18px; }
+  80%  { background-position:  24px  34px; }
+  100% { background-position:   0px   0px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+}
+
+/* ── Custom cursor ─────────────────────────────────────── */
+body { cursor: none; }
+input, textarea, select { cursor: auto; }
+
+.cursor-ring {
+  position: fixed;
+  top: -40px; left: -40px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1.5px solid var(--blitz-primary);
+  background: rgba(255, 179, 0, 0.07);
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  transform: translate(-300px, -300px);
+}
+.cursor-dot {
+  position: fixed;
+  top: -4px; left: -4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--blitz-primary);
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-300px, -300px);
+}
+
+/* ── Content layer (above background canvas) ───────────── */
+.app-content { position: relative; z-index: 1; }
+
 /* ── Header ────────────────────────────────────────────── */
 .app-header {
   position: sticky; top: 0; z-index: 100;

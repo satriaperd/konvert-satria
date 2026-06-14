@@ -29,7 +29,9 @@ body::before {
 
 /* ── Custom cursor ─────────────────────────────────────── */
 body { cursor: none; }
-input, textarea, select { cursor: auto; }
+/* Force all elements to use the custom cursor ring, not the browser pointer */
+* { cursor: none !important; }
+input, textarea, select { cursor: auto !important; }
 
 .cursor-ring-wrap {
   position: fixed;
@@ -50,6 +52,14 @@ input, textarea, select { cursor: auto; }
   transform: scale(1);
   /* Appear: 800ms smooth ease-out */
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.28); }
+}
+.cursor-ring.is-visible.is-pulsing {
+  animation: ring-pulse 1.4s ease-in-out infinite;
+  transition: none;
 }
 .cursor-dot {
   position: fixed;

@@ -18,18 +18,44 @@ export default function CursorRing() {
       wrap.style.transform = tx
       dot.style.transform  = tx
 
-      // Walk up from the element under cursor to detect opaque content.
-      // Stop before <body> — body's background is the page bg, not "content".
       const target = document.elementFromPoint(x, y)
-      let onContent = false
+
+      // Walk up checking for interactive elements — ring pulses instead of showing hand cursor
+      let clickable = false
       let node = target
+      for (let i = 0; i < 8 && node && node !== document.body; i++) {
+        const tag = node.tagName
+        if (
+          tag === 'A' || tag === 'BUTTON' || tag === 'INPUT' ||
+          tag === 'SELECT' || tag === 'TEXTAREA' ||
+          node.getAttribute('role') === 'button' || node.getAttribute('role') === 'link'
+        ) { clickable = true; break }
+        node = node.parentElement
+      }
+
+      if (clickable) {
+        ring.classList.add('is-visible')
+        ring.classList.add('is-pulsing')
+        return
+      }
+
+      ring.classList.remove('is-pulsing')
+
+      // Header and footer are chrome — always show ring without background check
+      const inChrome = !!(target?.closest('footer') || target?.closest('header'))
+      if (inChrome) {
+        ring.classList.add('is-visible')
+        return
+      }
+
+      // Content areas: hide ring when opaque background is detected
+      let onContent = false
+      node = target
       for (let i = 0; i < 6 && node && node !== document.body; i++) {
         const bg = getComputedStyle(node).backgroundColor
         if (bg && bg !== 'rgba(0, 0, 0, 0)') { onContent = true; break }
         node = node.parentElement
       }
-
-      // Toggle class — CSS transition handles scale 0↔1
       ring.classList.toggle('is-visible', !onContent)
     }
 
@@ -37,6 +63,7 @@ export default function CursorRing() {
       wrap.style.transform = 'translate(-300px, -300px)'
       dot.style.transform  = 'translate(-300px, -300px)'
       ring.classList.remove('is-visible')
+      ring.classList.remove('is-pulsing')
     }
 
     window.addEventListener('mousemove', onMove)

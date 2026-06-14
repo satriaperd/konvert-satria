@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 
-const RADIUS   = 120  // mouse influence radius in px
+const RADIUS   = 160  // mouse influence radius in px (2× the 80px cursor ring)
 const MAX_PUSH = 30   // max vertex displacement in px
+const MAX_LIFT = 10   // max perpendicular line spread in px (creates "lifted" spacing)
 const SPACING  = 16   // perpendicular distance between diagonal lines
 const SEGMENT  = 10   // subdivision length within distortion zone
 
@@ -53,32 +54,41 @@ export default function BackgroundCanvas() {
       const cy = H / 2
 
       for (let i = -numLines; i <= numLines; i++) {
-        // Center of this line, offset perpendicular from viewport center
-        const lcx = cx + i * SPACING * PX
-        const lcy = cy + i * SPACING * PY
+        // Original line center, offset perpendicular from viewport center
+        let lcx = cx + i * SPACING * PX
+        let lcy = cy + i * SPACING * PY
+
+        const sx0 = lcx - DX * lineLength / 2
+        const sy0 = lcy - DY * lineLength / 2
+
+        // Project mouse onto line to find closest point (using original position)
+        const proj        = (mx - sx0) * DX + (my - sy0) * DY
+        const clampedProj = Math.max(0, Math.min(lineLength, proj))
+        const closestX    = sx0 + DX * clampedProj
+        const closestY    = sy0 + DY * clampedProj
+        const closestDist = Math.hypot(closestX - mx, closestY - my)
+
+        if (closestDist >= RADIUS || mx < -500) {
+          ctx.beginPath()
+          ctx.moveTo(sx0, sy0)
+          ctx.lineTo(sx0 + DX * lineLength, sy0 + DY * lineLength)
+          ctx.stroke()
+          continue
+        }
+
+        // Lift: push each line away from the mouse perpendicularly.
+        // Lines spread apart, making spacing appear wider near the cursor.
+        const perpDist = (mx - lcx) * PX + (my - lcy) * PY
+        const liftMag  = (1 - closestDist / RADIUS) ** 2 * MAX_LIFT
+        lcx -= Math.sign(perpDist) * liftMag * PX
+        lcy -= Math.sign(perpDist) * liftMag * PY
 
         const sx = lcx - DX * lineLength / 2
         const sy = lcy - DY * lineLength / 2
         const ex = lcx + DX * lineLength / 2
         const ey = lcy + DY * lineLength / 2
 
-        // Project mouse onto this line to find the closest point
-        const proj        = (mx - sx) * DX + (my - sy) * DY
-        const clampedProj = Math.max(0, Math.min(lineLength, proj))
-        const closestX    = sx + DX * clampedProj
-        const closestY    = sy + DY * clampedProj
-        const closestDist = Math.hypot(closestX - mx, closestY - my)
-
-        if (closestDist >= RADIUS || mx < -500) {
-          // No distortion — single straight stroke
-          ctx.beginPath()
-          ctx.moveTo(sx, sy)
-          ctx.lineTo(ex, ey)
-          ctx.stroke()
-          continue
-        }
-
-        // Compute t-range of the line that falls within the influence circle
+        // Compute t-range within the influence circle for vertex distortion
         const halfChord = Math.sqrt(Math.max(0, RADIUS * RADIUS - closestDist * closestDist))
         const tCenter   = clampedProj / lineLength
         const tHalf     = halfChord / lineLength
@@ -87,14 +97,11 @@ export default function BackgroundCanvas() {
 
         const p0x = sx + t0 * lineLength * DX
         const p0y = sy + t0 * lineLength * DY
-        const p1x = sx + t1 * lineLength * DX
-        const p1y = sy + t1 * lineLength * DY
 
         ctx.beginPath()
         ctx.moveTo(sx, sy)
-        ctx.lineTo(p0x, p0y) // straight up to distortion entry
+        ctx.lineTo(p0x, p0y)
 
-        // Subdivide and displace only the affected segment
         const segCount = Math.max(6, Math.ceil((t1 - t0) * lineLength / SEGMENT))
         for (let j = 1; j <= segCount; j++) {
           const t  = t0 + (t1 - t0) * (j / segCount)
@@ -111,7 +118,7 @@ export default function BackgroundCanvas() {
           ctx.lineTo(px, py)
         }
 
-        ctx.lineTo(ex, ey) // straight from distortion exit to end
+        ctx.lineTo(ex, ey)
         ctx.stroke()
       }
     }
